@@ -32,21 +32,21 @@ def generate_image():
     data = request.json
     prompt = data.get("prompt", "A beautiful AI-generated artwork")
 
-    # ✅ Fix: Add `Accept` header to request
+    # ✅ Fix: Use `multipart/form-data` instead of JSON
     url = "https://api.stability.ai/v2beta/stable-image/generate/core"
     headers = {
-        "Authorization": f"Bearer {STABILITY_AI_API_KEY}",
-        "Accept": "application/json",  # ✅ Fix: Ensure API returns JSON data
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {STABILITY_AI_API_KEY}"
     }
-    payload = {
-        "prompt": prompt,
-        "width": 512,
-        "height": 512,
-        "steps": 30
+    
+    # ✅ Stability AI API requires `multipart/form-data`
+    files = {
+        "prompt": (None, prompt),
+        "width": (None, "512"),
+        "height": (None, "512"),
+        "steps": (None, "30")
     }
 
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(url, headers=headers, files=files)
 
     if response.status_code == 200:
         return jsonify(response.json())
