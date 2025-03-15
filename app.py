@@ -9,17 +9,12 @@ app = Flask(__name__)
 
 # Load environment variables
 load_dotenv()
-
-# Get Stability API key from Render environment variables
 STABILITY_AI_API_KEY = os.getenv("STABILITY_AI_API_KEY")
 
-if not STABILITY_AI_API_KEY:
-    print("⚠️ Warning: STABILITY_AI_API_KEY is missing! Ensure it's set in Render.")
+# ✅ Fix CORS for Netlify
+CORS(app, resources={r"/*": {"origins": ["https://museevirtuel.netlify.app", "http://localhost:5173"]}}, supports_credentials=True)
 
-# ✅ Fix CORS: Allow Netlify frontend to access this API
-CORS(app, resources={r"/*": {"origins": ["https://museevirtuel.netlify.app", "http://localhost:5173"]}})
-
-# 🔹 Health Check Route
+# 🔹 API Health Check
 @app.route("/api/status", methods=["GET"])
 def status():
     return jsonify({
@@ -36,20 +31,20 @@ def generate_image():
 
     data = request.json
     prompt = data.get("prompt", "A beautiful AI-generated artwork")
-    
-    # Stability AI API request
+
+    # ✅ Fix: Use Multipart Form Data for Stability AI API
+    url = "https://api.stability.ai/v2beta/stable-image/generate/core"
     headers = {
-        "Authorization": f"Bearer {STABILITY_AI_API_KEY}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {STABILITY_AI_API_KEY}"
     }
-    payload = {
-        "prompt": prompt,
-        "width": 512,
-        "height": 512,
-        "steps": 30
+    files = {
+        "prompt": (None, prompt),
+        "width": (None, "512"),
+        "height": (None, "512"),
+        "steps": (None, "30")
     }
 
-    response = requests.post("https://api.stability.ai/v2beta/stable-image/generate/core", json=payload, headers=headers)
+    response = requests.post(url, headers=headers, files=files)
 
     if response.status_code == 200:
         return jsonify(response.json())
