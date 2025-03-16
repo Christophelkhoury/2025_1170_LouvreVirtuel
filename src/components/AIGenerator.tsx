@@ -16,8 +16,7 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
     setError(null);
 
     try {
-      // ✅ Use production API URL or fallback to local development
-      const apiUrl = import.meta.env.VITE_PRODUCTION_API_URL || import.meta.env.VITE_API_URL;
+      const apiUrl = import.meta.env.VITE_API_URL;
       if (!apiUrl) {
         throw new Error("API URL is not configured");
       }
@@ -30,16 +29,21 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: `An artwork in the style of ${style.name}`,
+          style: style.name,
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData?.details || `Server error: ${response.status} ${response.statusText}`);
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error("Failed to parse server response");
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.details || `Server error: ${response.status} ${response.statusText}`);
+      }
+
       console.log("✅ AI Generation Response:", data);
 
       if (!data.imageUrl) {
