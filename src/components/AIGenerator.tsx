@@ -46,8 +46,10 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
       console.log("API Response:", data); // ✅ Debugging the response
 
       if (!data.imageUrl) {
-        throw new Error("No image URL received from the server");
-      }
+  console.error("🚨 No image URL received! Full response:", data);
+  throw new Error("AI did not return an image. Please try again.");
+}
+
 
       const generatedPainting: GeneratedPainting = {
         id: `ai-${Date.now()}`,
