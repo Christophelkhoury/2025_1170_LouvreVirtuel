@@ -35,7 +35,8 @@ def generate_image():
     # ✅ Fix: Use `multipart/form-data` instead of JSON
     url = "https://api.stability.ai/v2beta/stable-image/generate/core"
     headers = {
-        "Authorization": f"Bearer {STABILITY_AI_API_KEY}"
+        "Authorization": f"Bearer {STABILITY_AI_API_KEY}",
+        "Accept": "application/json",  # ✅ Fix: Ensure API expects JSON response
     }
     
     # ✅ Stability AI API requires `multipart/form-data`
