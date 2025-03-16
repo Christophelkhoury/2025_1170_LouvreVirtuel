@@ -13,7 +13,7 @@ HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 if not HUGGINGFACE_API_KEY:
     print("🚨 Warning: HUGGINGFACE_API_KEY is missing!")
 
-# Initialize Flask App
+# Initialize Flask Ap
 app = Flask(__name__)
 
 # Fix CORS for Netlify communication
