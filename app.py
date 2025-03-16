@@ -34,13 +34,15 @@ def status():
 @app.route("/api/generate", methods=["POST"])
 def generate_image():
     if not HUGGINGFACE_API_KEY:
+        print("🚨 API Key MISSING in Flask!")
         return jsonify({"error": "API key missing"}), 401
+
+    print(f"✅ Using API Key: {HUGGINGFACE_API_KEY[:6]}**********")  # Hides most of the key for security
 
     data = request.json
     prompt = data.get("prompt", "A beautiful AI-generated artwork")
 
-    # ✅ Hugging Face API Request
-    url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2"
+    url = "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4"
     headers = {
         "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
         "Content-Type": "application/json"
@@ -49,13 +51,10 @@ def generate_image():
 
     print("📤 Sending request to Hugging Face API...")
     response = requests.post(url, headers=headers, json=payload)
-    print("📥 Hugging Face API Response:", response.status_code)
+    print("📥 Hugging Face API Response:", response.status_code, response.text)
 
     if response.status_code == 200:
-        try:
-            return jsonify({"image": response.content.decode("utf-8")})
-        except Exception as e:
-            return jsonify({"error": "Failed to process AI response", "details": str(e)}), 500
+        return jsonify({"imageUrl": response.content.decode("utf-8")})
     else:
         return jsonify({"error": "AI image generation failed", "details": response.text}), response.status_code
 
