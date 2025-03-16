@@ -16,8 +16,7 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
     setError(null);
 
     try {
-      // ✅ Fix: Use production URL if available, fallback to development URL
-      const apiUrl = import.meta.env.VITE_PRODUCTION_API_URL || import.meta.env.VITE_API_URL;
+      const apiUrl = import.meta.env.VITE_API_URL;
       if (!apiUrl) {
         throw new Error("API URL is not configured");
       }
@@ -28,28 +27,29 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",  // ✅ Fix: Ensures the API responds with JSON
+          "Accept": "application/json"
         },
         body: JSON.stringify({
-          prompt: `An artwork in the style of ${style.name}`, // ✅ Fix: Send a proper prompt
-          width: 512,  
-          height: 512, 
-          steps: 30  
+          prompt: `Create a ${style.name} style painting. The image should be highly detailed and artistic, following the characteristics of ${style.name} art movement.`
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.details || 
+          errorData.error || 
+          `Server error: ${response.status} ${response.statusText}`
+        );
       }
 
       const data = await response.json();
-      console.log("API Response:", data); // ✅ Debugging the response
+      console.log("API Response:", data); // Debugging the response
 
       if (!data.imageUrl) {
-  console.error("🚨 No image URL received! Full response:", data);
-  throw new Error("AI did not return an image. Please try again.");
-}
-
+        console.error("🚨 No image URL received! Full response:", data);
+        throw new Error("AI did not return an image. Please try again.");
+      }
 
       const generatedPainting: GeneratedPainting = {
         id: `ai-${Date.now()}`,
@@ -58,7 +58,7 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
         artist: `IA dans le style ${style.name}`,
         year: "2024",
         description: `Une œuvre générée automatiquement dans le style ${style.name}.`,
-        prompt: data.prompt,
+        prompt: `Create a ${style.name} style painting`
       };
 
       onGenerated(generatedPainting);
