@@ -16,39 +16,34 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
     setError(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
+      // ✅ Use production API URL or fallback to local development
+      const apiUrl = import.meta.env.VITE_PRODUCTION_API_URL || import.meta.env.VITE_API_URL;
       if (!apiUrl) {
         throw new Error("API URL is not configured");
       }
 
-      console.log(`Using API URL: ${apiUrl}`); // Debugging info
+      console.log(`🔹 Using API URL: ${apiUrl}`);
 
       const response = await fetch(`${apiUrl}/api/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
         },
         body: JSON.stringify({
-          prompt: `Create a ${style.name} style painting. The image should be highly detailed and artistic, following the characteristics of ${style.name} art movement.`
+          prompt: `An artwork in the style of ${style.name}`,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.details || 
-          errorData.error || 
-          `Server error: ${response.status} ${response.statusText}`
-        );
+        const errorData = await response.json();
+        throw new Error(errorData?.details || `Server error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log("API Response:", data); // Debugging the response
+      console.log("✅ AI Generation Response:", data);
 
       if (!data.imageUrl) {
-        console.error("🚨 No image URL received! Full response:", data);
-        throw new Error("AI did not return an image. Please try again.");
+        throw new Error("No image URL received from the server");
       }
 
       const generatedPainting: GeneratedPainting = {
@@ -58,12 +53,12 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
         artist: `IA dans le style ${style.name}`,
         year: "2024",
         description: `Une œuvre générée automatiquement dans le style ${style.name}.`,
-        prompt: `Create a ${style.name} style painting`
+        prompt: data.prompt,
       };
 
       onGenerated(generatedPainting);
     } catch (err) {
-      console.error("Generation Error:", err);
+      console.error("🚨 AI Generation Error:", err);
 
       let errorMessage = "Failed to generate image";
       let errorDetails = "An unexpected error occurred";
@@ -74,7 +69,7 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
           errorDetails = "The server might be offline or not accessible. Please try again later.";
         } else if (err.message === "API URL is not configured") {
           errorMessage = "Configuration Error";
-          errorDetails = "The API URL is not properly configured in the environment variables";
+          errorDetails = "The API URL is not properly configured in the environment variables.";
         } else {
           errorDetails = err.message;
         }
@@ -103,9 +98,7 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
               <AlertCircle className="w-5 h-5" />
               <p className="font-medium">{error.message}</p>
             </div>
-            {error.details && (
-              <p className="mt-1 text-sm text-red-600 ml-7">{error.details}</p>
-            )}
+            {error.details && <p className="mt-1 text-sm text-red-600 ml-7">{error.details}</p>}
           </div>
         )}
 
