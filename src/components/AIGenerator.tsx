@@ -23,6 +23,9 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
 
       console.log(`🔹 Using API URL: ${apiUrl}`);
 
+      // Generate a random seed to ensure unique responses
+      const randomSeed = Math.random().toString(36).substring(7);
+      
       const response = await fetch(`${apiUrl}/api/generate`, {
         method: "POST",
         headers: {
@@ -30,6 +33,7 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
         },
         body: JSON.stringify({
           style: style.name,
+          seed: randomSeed, // Add randomness to force a new image
         }),
       });
 
