@@ -87,7 +87,7 @@ export const paintingCollections: PaintingStyle[] = [
       {
         id: 'dali-1',
         title: 'La Persistance de la mémoire',
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e5/Magritte_TheSonOfMan.jpg',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/d/dd/The_Persistence_of_Memory.jpg',
         artist: 'Salvador Dalí',
         year: '2024',
         description: 'Une exploration surréaliste du temps et de la réalité, dans le style caractéristique de Dalí.'
@@ -189,7 +189,7 @@ export const paintingCollections: PaintingStyle[] = [
       {
         id: 'postimpressionism-4',
         title: 'Le Café de nuit',
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Vincent_van_Gogh_-_Cafe_Terrace_at_Night_%281888%29.jpg/520px-Vincent_van_Gogh_-_Cafe_Terrace_at_Night_%281888%29.jpg',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Vincent_Willem_van_Gogh_076.jpg/600px-Vincent_Willem_van_Gogh_076.jpg',
         artist: 'Vincent van Gogh',
         year: '2024',
         description: 'Une scène nocturne éclairée par la lumière chaude du café.'
