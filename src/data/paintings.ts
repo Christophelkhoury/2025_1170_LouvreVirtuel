@@ -4,39 +4,39 @@ export const paintingCollections: PaintingStyle[] = [
   {
     id: 'impressionism',
     name: 'Impressionnisme',
-    description: 'Caractérisé par de petits coups de pinceau et l\'accent mis sur la lumière',
+    description: "Caractérisé par de petits coups de pinceau et l'accent mis sur la lumière",
     paintings: [
       {
         id: 'monet-1',
         title: 'Les Nymphéas',
         imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Claude_Monet_038.jpg/2880px-Claude_Monet_038.jpg',
-        artist: 'Inspiré de Claude Monet',
+        artist: 'Claude Monet',
         year: '2024',
-        description: 'Une interprétation des célèbres nymphéas de Giverny, capturant la lumière et les reflets sur l\'eau.'
+        description: "Une interprétation des célèbres nymphéas de Giverny, capturant la lumière et les reflets sur l'eau."
       },
       {
         id: 'monet-2',
-        title: 'Le Jardin',
-        imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5',
-        artist: 'Inspiré de Claude Monet',
+        title: "Le Jardin de l'artiste à Giverny",
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/La_Gare_Saint-Lazare_-_Claude_Monet.jpg/540px-La_Gare_Saint-Lazare_-_Claude_Monet.jpg',
+        artist: 'Claude Monet',
         year: '2024',
         description: 'Un chemin de jardin paisible, peint dans le style impressionniste caractéristique de Monet.'
       },
       {
         id: 'monet-3',
-        title: 'Soleil Couchant',
-        imageUrl: 'https://images.unsplash.com/photo-1507637246364-d8fce4a9850a',
-        artist: 'Inspiré de Claude Monet',
+        title: 'Impression, Soleil Levant',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Claude_Monet%2C_Impression%2C_soleil_levant.jpg/520px-Claude_Monet%2C_Impression%2C_soleil_levant.jpg',
+        artist: 'Claude Monet',
         year: '2024',
-        description: 'Un coucher de soleil vibrant sur l\'eau, capturant les reflets dorés et les nuances du ciel.'
+        description: 'Un lever de soleil vibrant, œuvre fondatrice de l’impressionnisme.'
       },
       {
         id: 'monet-4',
-        title: 'Brume Matinale',
-        imageUrl: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d',
-        artist: 'Inspiré de Claude Monet',
+        title: 'La Gare Saint-Lazare',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/La_Gare_Saint-Lazare_-_Claude_Monet.jpg/540px-La_Gare_Saint-Lazare_-_Claude_Monet.jpg',
+        artist: 'Claude Monet',
         year: '2024',
-        description: 'Une scène paisible du matin avec la brume qui se lève sur un paysage impressionniste.'
+        description: 'Une scène animée représentant le dynamisme urbain avec un jeu de lumière caractéristique de Monet.'
       }
     ]
   },
@@ -48,34 +48,34 @@ export const paintingCollections: PaintingStyle[] = [
       {
         id: 'kandinsky-1',
         title: 'Composition VIII',
-        imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262',
-        artist: 'Inspiré de Vassily Kandinsky',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Vassily_Kandinsky%2C_1923_-_Composition_8%2C_huile_sur_toile%2C_140_cm_x_201_cm%2C_Mus%C3%A9e_Guggenheim%2C_New_York.jpg/520px-Vassily_Kandinsky%2C_1923_-_Composition_8%2C_huile_sur_toile%2C_140_cm_x_201_cm%2C_Mus%C3%A9e_Guggenheim%2C_New_York.jpg',
+        artist: 'Vassily Kandinsky',
         year: '2024',
-        description: 'Une composition dynamique de formes géométriques et de couleurs vives, typique du style de Kandinsky.'
+        description: 'Composition géométrique, emblématique du mouvement abstrait.'
       },
       {
         id: 'mondrian-1',
-        title: 'Composition en Grid',
-        imageUrl: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1',
-        artist: 'Inspiré de Piet Mondrian',
+        title: 'Broadway Boogie Woogie',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Piet_Mondrian%2C_1942_-_Broadway_Boogie_Woogie.jpg/500px-Piet_Mondrian%2C_1942_-_Broadway_Boogie_Woogie.jpg',
+        artist: 'Piet Mondrian',
         year: '2024',
-        description: 'Une œuvre géométrique abstraite utilisant des lignes droites et des couleurs primaires.'
+        description: 'Une œuvre abstraite célébrant le dynamisme urbain par des couleurs primaires.'
       },
       {
         id: 'abstract-3',
-        title: 'Flux Cosmique',
-        imageUrl: 'https://images.unsplash.com/photo-1515405295579-ba7b45403062',
-        artist: 'Art Contemporain',
+        title: 'Victory Boogie Woogie',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Piet_Mondriaan_Victory_Boogie_Woogie.jpg/960px-Piet_Mondriaan_Victory_Boogie_Woogie.jpg',
+        artist: 'Piet Mondrian',
         year: '2024',
-        description: 'Une explosion de couleurs et de formes évoquant le mouvement des galaxies et des nébuleuses.'
+        description: 'Dernière œuvre inachevée de Mondrian.'
       },
       {
         id: 'abstract-4',
-        title: 'Résonance Chromatique',
-        imageUrl: 'https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8',
-        artist: 'Art Moderne',
+        title: 'Jaune-Rouge-Bleu',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Kandinsky_-_Jaune_Rouge_Bleu.jpg/520px-Kandinsky_-_Jaune_Rouge_Bleu.jpg',
+        artist: 'Vassily Kandinsky',
         year: '2024',
-        description: 'Une exploration des harmonies de couleurs à travers des formes organiques abstraites.'
+        description: 'Une étude abstraite de couleurs et de formes géométriques.'
       }
     ]
   },
@@ -86,38 +86,39 @@ export const paintingCollections: PaintingStyle[] = [
     paintings: [
       {
         id: 'dali-1',
-        title: 'Le Temps Qui Fond',
-        imageUrl: 'https://images.unsplash.com/photo-1543857778-c4a1a3e0b2eb',
-        artist: 'Inspiré de Salvador Dalí',
+        title: 'La Persistance de la mémoire',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e5/Magritte_TheSonOfMan.jpg',
+        artist: 'Salvador Dalí',
         year: '2024',
         description: 'Une exploration surréaliste du temps et de la réalité, dans le style caractéristique de Dalí.'
       },
       {
         id: 'magritte-1',
-        title: 'Le Faux Miroir',
-        imageUrl: 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968',
-        artist: 'Inspiré de René Magritte',
+        title: 'Le Fils de l’Homme',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e5/Magritte_TheSonOfMan.jpg',
+        artist: 'René Magritte',
         year: '2024',
         description: 'Une œuvre énigmatique jouant sur la perception et la réalité, typique de Magritte.'
       },
       {
         id: 'surreal-3',
-        title: 'Rêves Liquides',
-        imageUrl: 'https://images.unsplash.com/photo-1494122353634-c310f45a6d3c',
-        artist: 'Art Contemporain',
+        title: 'La Bohémienne endormie',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/La_Boh%C3%A9mienne_endormie.jpg/700px-La_Boh%C3%A9mienne_endormie.jpg',
+        artist: 'Henri Rousseau',
         year: '2024',
-        description: 'Une fusion onirique entre l\'eau et les éléments du rêve, créant un paysage surréaliste fluide.'
+        description: 'Un paysage surréaliste où une bohémienne dort paisiblement sous un ciel étoilé.'
       },
       {
         id: 'surreal-4',
-        title: 'Métamorphose Nocturne',
-        imageUrl: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04',
-        artist: 'École Moderne',
+        title: 'Les Éléphants',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/4/43/Dali_Elephants.jpg',
+        artist: 'Salvador Dalí',
         year: '2024',
-        description: 'Une transformation surréaliste d\'objets quotidiens dans un contexte nocturne mystérieux.'
+        description: 'Une représentation étrange et fascinante d’éléphants aux longues pattes.'
       }
     ]
-  },
+  }
+];
   {
     id: 'renaissance',
     name: 'Renaissance',
@@ -125,37 +126,37 @@ export const paintingCollections: PaintingStyle[] = [
     paintings: [
       {
         id: 'davinci-1',
-        title: 'Étude de Portrait',
-        imageUrl: 'https://images.unsplash.com/photo-1578927333046-8c49c3c91b11',
-        artist: 'Inspiré de Léonard de Vinci',
+        title: 'La Joconde',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_natural_color.jpg/520px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_natural_color.jpg',
+        artist: 'Léonard de Vinci',
         year: '2024',
-        description: 'Une étude détaillée du visage humain, reflétant la précision anatomique de la Renaissance.'
+        description: 'Le portrait le plus célèbre du monde, avec son regard énigmatique et son sfumato.'
       },
       {
         id: 'botticelli-1',
-        title: 'Vénus Naissante',
-        imageUrl: 'https://images.unsplash.com/photo-1579783902439-0f26d8526508',
-        artist: 'Inspiré de Sandro Botticelli',
+        title: 'La Naissance de Vénus',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/520px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg',
+        artist: 'Sandro Botticelli',
         year: '2024',
-        description: 'Une réinterprétation de la naissance de Vénus, capturant la grâce et l\'élégance de Botticelli.'
+        description: 'Une représentation emblématique de la beauté et de la mythologie.'
       },
       {
         id: 'renaissance-3',
-        title: 'L\'Atelier du Maître',
-        imageUrl: 'https://images.unsplash.com/photo-1577083552431-6e5fd75a9370',
-        artist: 'École Florentine',
+        title: 'L\'École d\'Athènes',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/520px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg',
+        artist: 'Raphaël',
         year: '2024',
-        description: 'Une scène d\'atelier représentant les techniques et l\'ambiance de la Renaissance italienne.'
+        description: 'Une fresque rassemblant les grands philosophes de l’Antiquité.'
       },
       {
         id: 'renaissance-4',
-        title: 'Méditation Classique',
-        imageUrl: 'https://images.unsplash.com/photo-1569172122301-bc5008bc09c5',
-        artist: 'École Vénitienne',
+        title: 'David',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/%27David%27_by_Michelangelo_Fir_JBU004.jpg/520px-%27David%27_by_Michelangelo_Fir_JBU004.jpg',
+        artist: 'Michel-Ange',
         year: '2024',
-        description: 'Un portrait contemplatif dans le style des grands maîtres de la Renaissance.'
+        description: 'Une sculpture magistrale représentant la force et la beauté humaine.'
       }
-    ]
+    
   },
   {
     id: 'postimpressionism',
@@ -164,35 +165,35 @@ export const paintingCollections: PaintingStyle[] = [
     paintings: [
       {
         id: 'vangogh-1',
-        title: 'Interprétation de La Nuit Étoilée',
-        imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5',
-        artist: 'Inspiré de Vincent van Gogh',
+        title: 'La Nuit étoilée',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/520px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg',
+        artist: 'Vincent van Gogh',
         year: '2024',
-        description: 'Une vision moderne du chef-d\'œuvre de Van Gogh, avec ses tourbillons caractéristiques.'
+        description: 'Un paysage nocturne tourbillonnant et vibrant de mouvement.'
       },
       {
         id: 'cezanne-1',
-        title: 'Nature Morte aux Pommes',
-        imageUrl: 'https://images.unsplash.com/photo-1579783902438-b80a3d02c67f',
-        artist: 'Inspiré de Paul Cézanne',
+        title: 'Les Joueurs de cartes',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg/520px-Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg',
+        artist: 'Paul Cézanne',
         year: '2024',
-        description: 'Une nature morte géométrique dans le style de Cézanne, explorant la forme et la perspective.'
+        description: 'Un chef-d’œuvre du post-impressionnisme représentant des joueurs de cartes.'
       },
       {
         id: 'postimpressionism-3',
-        title: 'Champs de Lavande',
-        imageUrl: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec',
-        artist: 'École Provençale',
+        title: 'Les Tournesols',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Vincent_Willem_van_Gogh_127.jpg/520px-Vincent_Willem_van_Gogh_127.jpg',
+        artist: 'Vincent van Gogh',
         year: '2024',
-        description: 'Une vue vibrante des champs de lavande du sud de la France dans un style post-impressionniste.'
+        description: 'Une série de tableaux représentant des tournesols vibrants de lumière et de texture.'
       },
       {
         id: 'postimpressionism-4',
-        title: 'Café de Nuit',
-        imageUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205',
-        artist: 'Style Moderne',
+        title: 'Le Café de nuit',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Vincent_van_Gogh_-_Cafe_Terrace_at_Night_%281888%29.jpg/520px-Vincent_van_Gogh_-_Cafe_Terrace_at_Night_%281888%29.jpg',
+        artist: 'Vincent van Gogh',
         year: '2024',
-        description: 'Une scène nocturne de café avec des couleurs intenses et des coups de pinceau expressifs.'
+        description: 'Une scène nocturne éclairée par la lumière chaude du café.'
       }
     ]
   },
@@ -203,35 +204,35 @@ export const paintingCollections: PaintingStyle[] = [
     paintings: [
       {
         id: 'picasso-1',
-        title: 'Portrait Géométrique',
-        imageUrl: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1',
-        artist: 'Inspiré de Pablo Picasso',
+        title: 'Les Demoiselles d’Avignon',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4c/Les_Demoiselles_d%27Avignon.jpg/600px-Les_Demoiselles_d%27Avignon.jpg',
+        artist: 'Pablo Picasso',
         year: '2024',
-        description: 'Un portrait cubiste fragmenté, montrant plusieurs angles simultanément.'
+        description: 'Un tableau révolutionnaire qui marque le début du cubisme.'
       },
       {
         id: 'braque-1',
-        title: 'Nature Morte Fragmentée',
-        imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262',
-        artist: 'Inspiré de Georges Braque',
+        title: 'Nature morte à la chaise cannée',
+        imageUrl: 'https://www.museepicassoparis.fr/sites/default/files/2022-02/nature%20morte%20%C3%A0%20la%20chaise%20can%C3%A9e%20HD%20OK.jpg',
+        artist: 'Pablo Picasso',
         year: '2024',
-        description: 'Une composition cubiste complexe décomposant les objets en formes géométriques.'
+        description: 'Une des premières œuvres utilisant la technique du collage.'
       },
       {
         id: 'cubism-3',
-        title: 'Jazz Cubique',
-        imageUrl: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa',
-        artist: 'École Moderne',
+        title: 'Homme à la guitare',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e0/Georges_Braque%2C_1911-12%2C_Man_with_a_Guitar_%28Figure%2C_L%E2%80%99homme_%C3%A0_la_guitare%29%2C_oil_on_canvas%2C_116.2_x_80.9_cm_%2845.75_x_31.9_in%29%2C_Museum_of_Modern_Art%2C_New_York.jpg/852px-thumbnail.jpg?20150406124530',
+        artist: 'Georges Braque',
         year: '2024',
-        description: 'Une interprétation cubiste de musiciens de jazz, décomposant les instruments et les formes.'
+        description: 'Un chef-d’œuvre du cubisme analytique.'
       },
       {
         id: 'cubism-4',
-        title: 'Ville Fragmentée',
-        imageUrl: 'https://images.unsplash.com/photo-1501084817091-a4f3d1d19e07',
-        artist: 'Style Contemporain',
+        title: 'Le Violoniste',
+        imageUrl: 'https://www.artchive.com/wp-content/uploads/2023/04/The-Violin-Gris-Juan-1916-2-1.jpg',
+        artist: 'Juan Gris',
         year: '2024',
-        description: 'Un paysage urbain décomposé en formes géométriques selon les principes du cubisme.'
+        description: 'Une approche plus colorée et structurée du cubisme.'
       }
     ]
   },
@@ -242,35 +243,27 @@ export const paintingCollections: PaintingStyle[] = [
     paintings: [
       {
         id: 'contemporary-1',
-        title: 'Ère Numérique',
-        imageUrl: 'https://images.unsplash.com/photo-1549490349-8643362247b5',
-        artist: 'Collectif d\'Artistes Modernes',
+        title: 'Campbell’s Soup Cans',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/1/1f/Campbells_Soup_Cans_MOMA.jpg',
+        artist: 'Andy Warhol',
         year: '2024',
-        description: 'Une exploration de l\'intersection entre l\'art traditionnel et la technologie moderne.'
+        description: 'Une icône du pop art représentant des boîtes de soupe Campbell.'
       },
       {
         id: 'contemporary-2',
-        title: 'Expression Urbaine',
-        imageUrl: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8',
-        artist: 'Mouvement Street Art',
+        title: 'Balloon Dog',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/6/65/Balloon_Dog_%28Blue%29_by_Jeff_Koons%2C_The_Broad.jpg',
+        artist: 'Jeff Koons',
         year: '2024',
-        description: 'Une œuvre contemporaine reflétant la vie urbaine et la culture moderne.'
+        description: 'Une sculpture en acier inoxydable brillant.'
       },
       {
         id: 'contemporary-3',
-        title: 'Fusion Digitale',
-        imageUrl: 'https://images.unsplash.com/photo-1551913902-c92207136625',
-        artist: 'Art Numérique',
+        title: 'Love',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/LOVE_%281967%29.jpg/440px-LOVE_%281967%29.jpg',
+        artist: 'Robert Indiana',
         year: '2024',
-        description: 'Une fusion entre l\'art traditionnel et les médias numériques, créant une expérience immersive.'
-      },
-      {
-        id: 'contemporary-4',
-        title: 'Échos Urbains',
-        imageUrl: 'https://images.unsplash.com/photo-1501084291732-13b1ba8f0ebc',
-        artist: 'Nouveau Réalisme',
-        year: '2024',
-        description: 'Une réflexion sur la vie urbaine moderne à travers des techniques mixtes contemporaines.'
+        description: 'Une sculpture emblématique avec le mot "LOVE".'
       }
     ]
   }
