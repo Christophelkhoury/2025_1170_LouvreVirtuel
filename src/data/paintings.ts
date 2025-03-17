@@ -114,7 +114,7 @@ export const paintingCollections: PaintingStyle[] = [
         imageUrl: 'https://upload.wikimedia.org/wikipedia/en/4/43/Dali_Elephants.jpg',
         artist: 'Salvador Dalí',
         year: '2024',
-        description: 'Une représentation étrange et fascinante d'éléphants aux longues pattes.'
+        description: 'Une représentation étrange et fascinante d\'éléphants aux longues pattes.'
       }
     ]
   },
@@ -145,7 +145,7 @@ export const paintingCollections: PaintingStyle[] = [
         imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/520px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg',
         artist: 'Raphaël',
         year: '2024',
-        description: 'Une fresque rassemblant les grands philosophes de l'Antiquité.'
+        description: 'Une fresque rassemblant les grands philosophes de l\'Antiquité.'
       },
       {
         id: 'renaissance-4',
@@ -176,7 +176,7 @@ export const paintingCollections: PaintingStyle[] = [
         imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg/520px-Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg',
         artist: 'Paul Cézanne',
         year: '2024',
-        description: 'Un chef-d'œuvre du post-impressionnisme représentant des joueurs de cartes.'
+        description: 'Un chef-d\'œuvre du post-impressionnisme représentant des joueurs de cartes.'
       },
       {
         id: 'postimpressionism-3',
@@ -203,7 +203,7 @@ export const paintingCollections: PaintingStyle[] = [
     paintings: [
       {
         id: 'picasso-1',
-        title: 'Les Demoiselles d'Avignon',
+        title: 'Les Demoiselles d\'Avignon',
         imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4c/Les_Demoiselles_d%27Avignon.jpg/600px-Les_Demoiselles_d%27Avignon.jpg',
         artist: 'Pablo Picasso',
         year: '2024',
@@ -223,7 +223,7 @@ export const paintingCollections: PaintingStyle[] = [
         imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e0/Georges_Braque%2C_1911-12%2C_Man_with_a_Guitar_%28Figure%2C_L%E2%80%99homme_%C3%A0_la_guitare%29%2C_oil_on_canvas%2C_116.2_x_80.9_cm_%2845.75_x_31.9_in%29%2C_Museum_of_Modern_Art%2C_New_York.jpg/852px-thumbnail.jpg?20150406124530',
         artist: 'Georges Braque',
         year: '2024',
-        description: 'Un chef-d'œuvre du cubisme analytique.'
+        description: 'Un chef-d\'œuvre du cubisme analytique.'
       },
       {
         id: 'cubism-4',
@@ -242,7 +242,7 @@ export const paintingCollections: PaintingStyle[] = [
     paintings: [
       {
         id: 'contemporary-1',
-        title: 'Campbell's Soup Cans',
+        title: 'Campbell\'s Soup Cans',
         imageUrl: 'https://upload.wikimedia.org/wikipedia/en/1/1f/Campbells_Soup_Cans_MOMA.jpg',
         artist: 'Andy Warhol',
         year: '2024',
