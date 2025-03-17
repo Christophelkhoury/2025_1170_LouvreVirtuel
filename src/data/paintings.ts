@@ -17,7 +17,7 @@ export const paintingCollections: PaintingStyle[] = [
       {
         id: 'monet-2',
         title: "Le Jardin de l'artiste à Giverny",
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/La_Gare_Saint-Lazare_-_Claude_Monet.jpg/540px-La_Gare_Saint-Lazare_-_Claude_Monet.jpg',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Monet_-_Monets_Garten_in_Giverny.jpg/700px-Monet_-_Monets_Garten_in_Giverny.jpg',
         artist: 'Claude Monet',
         year: '1900',
         description: 'Un chemin de jardin paisible, peint dans le style impressionniste caractéristique de Monet.'
