@@ -94,7 +94,7 @@ export const paintingCollections: PaintingStyle[] = [
       },
       {
         id: 'magritte-1',
-        title: 'Le Fils de l'Homme',
+        title: 'Le Fils de l\'Homme',
         imageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e5/Magritte_TheSonOfMan.jpg',
         artist: 'René Magritte',
         year: '2024',
