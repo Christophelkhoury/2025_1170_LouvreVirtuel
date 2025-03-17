@@ -28,7 +28,7 @@ export const paintingCollections: PaintingStyle[] = [
         imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Claude_Monet%2C_Impression%2C_soleil_levant.jpg/520px-Claude_Monet%2C_Impression%2C_soleil_levant.jpg',
         artist: 'Claude Monet',
         year: '2024',
-        description: 'Un lever de soleil vibrant, œuvre fondatrice de l'impressionnisme.'
+        description: "Un lever de soleil vibrant, œuvre fondatrice de l'impressionnisme."
       },
       {
         id: 'monet-4',
@@ -263,7 +263,7 @@ export const paintingCollections: PaintingStyle[] = [
         artist: 'Robert Indiana',
         year: '2024',
         description: 'Une sculpture emblématique avec le mot "LOVE".'
-      }
+      },
       {
         id: 'contemporary-4',
         title: 'Untitled (1981)',
@@ -272,7 +272,6 @@ export const paintingCollections: PaintingStyle[] = [
         year: '2024',
         description: 'Une œuvre emblématique de Basquiat, mêlant graffiti, abstraction et art contemporain.'
       }
-
     ]
   }
 ];
