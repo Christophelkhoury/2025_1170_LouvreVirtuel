@@ -13,7 +13,7 @@ HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 if not HUGGINGFACE_API_KEY:
     print("🚨 Warning: HUGGINGFACE_API_KEY is missing!")
 
-# Initialize Flask Ap
+# Initialize Flask App
 app = Flask(__name__)
 
 # Fix CORS for Netlify communication
@@ -43,9 +43,28 @@ def generate_image():
 
     data = request.json
     style = data.get("style", "")
+    seed = data.get("seed", "")
+    timestamp = data.get("timestamp", 0)
+    random_factor = data.get("randomFactor", 0)
     
-    # Create a more detailed prompt for better results
-    prompt = f"A masterpiece painting in the style of {style}, highly detailed, artistic, professional quality"
+    print(f"🎲 Received randomization parameters: seed={seed}, timestamp={timestamp}, factor={random_factor}")
+    
+    # Create a more detailed prompt with randomization
+    base_prompt = f"A masterpiece painting in the style of {style}, highly detailed, artistic, professional quality"
+    variations = [
+        "with dramatic lighting",
+        "with vibrant colors",
+        "with subtle tones",
+        "with bold composition",
+        "with intricate details",
+        "with atmospheric effects"
+    ]
+    
+    # Use the random factor to select a variation
+    variation_index = random_factor % len(variations)
+    prompt = f"{base_prompt}, {variations[variation_index]}"
+    
+    print(f"📝 Generated prompt: {prompt}")
 
     # Using a more reliable model for art generation
     url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
@@ -58,7 +77,8 @@ def generate_image():
         "parameters": {
             "num_inference_steps": 50,
             "guidance_scale": 7.5,
-            "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy"
+            "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy",
+            "seed": abs(hash(seed)) % (2**32) if seed else None  # Convert string seed to numerical
         }
     }
 
