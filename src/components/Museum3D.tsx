@@ -60,7 +60,7 @@ function PaintingMesh({ painting, position }: PaintingMeshProps) {
       (texture) => {
         // Configure texture
         texture.encoding = THREE.sRGBEncoding;
-        texture.flipY = true; // Changed from false to true
+        texture.flipY = true;
         texture.needsUpdate = true;
 
         // Update material with loaded texture
@@ -235,16 +235,34 @@ export function Museum3D({ paintings }: Museum3DProps) {
             painting={displayPaintings[3]}
           />
           
-          {/* Floor */}
+          {/* Enhanced Floor */}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]} receiveShadow>
             <planeGeometry args={[10, 10]} />
-            <meshStandardMaterial color="#1a1a1a" />
+            <meshStandardMaterial 
+              color="#f5f5f5"
+              metalness={0.2}
+              roughness={0.8}
+            >
+              <gridHelper args={[10, 10, "#cccccc", "#cccccc"]} />
+            </meshStandardMaterial>
           </mesh>
           
-          {/* Ceiling */}
+          {/* Enhanced Ceiling */}
           <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 3, 0]}>
             <planeGeometry args={[10, 10]} />
-            <meshStandardMaterial color="#2a2a2a" />
+            <meshStandardMaterial 
+              color="#ffffff"
+              metalness={0.1}
+              roughness={0.9}
+            >
+              <spotLight
+                position={[0, -1, 0]}
+                angle={Math.PI / 4}
+                penumbra={0.5}
+                intensity={0.5}
+                castShadow
+              />
+            </meshStandardMaterial>
           </mesh>
 
           <Environment preset="apartment" />
