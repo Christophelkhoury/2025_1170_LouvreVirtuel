@@ -10,6 +10,8 @@ interface AIGeneratorProps {
 export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
+  // Track the last used timestamp to ensure uniqueness
+  const [lastTimestamp, setLastTimestamp] = useState(0);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -23,8 +25,18 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
 
       console.log(`🔹 Using API URL: ${apiUrl}`);
 
-      // Generate a random seed to ensure unique responses
-      const randomSeed = Math.random().toString(36).substring(7);
+      // Create a more robust random seed with multiple sources of randomness
+      const currentTime = Date.now();
+      // Ensure we never use the same timestamp twice
+      const uniqueTimestamp = currentTime > lastTimestamp ? currentTime : lastTimestamp + 1;
+      setLastTimestamp(uniqueTimestamp);
+      
+      // Combine multiple sources of randomness
+      const randomValue1 = Math.random().toString(36).substring(2, 10);
+      const randomValue2 = Math.random().toString(36).substring(2, 10);
+      const randomSeed = `${uniqueTimestamp}-${randomValue1}-${randomValue2}`;
+      
+      console.log(`🎲 Using random seed: ${randomSeed}`);
       
       const response = await fetch(`${apiUrl}/api/generate`, {
         method: "POST",
@@ -33,7 +45,9 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
         },
         body: JSON.stringify({
           style: style.name,
-          seed: randomSeed, // Add randomness to force a new image
+          seed: randomSeed,
+          timestamp: uniqueTimestamp, // Additional randomness parameter
+          randomFactor: Math.floor(Math.random() * 1000000), // Additional numerical random value
         }),
       });
 
@@ -54,9 +68,12 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
         throw new Error("No image URL received from the server");
       }
 
+      // Add the unique seed to the title to help track uniqueness
+      const uniqueId = `ai-${uniqueTimestamp}-${randomValue1.substring(0, 4)}`;
+      
       const generatedPainting: GeneratedPainting = {
-        id: `ai-${Date.now()}`,
-        title: `Peinture IA en ${style.name}`,
+        id: uniqueId,
+        title: `Peinture IA en ${style.name} #${uniqueId.slice(-6)}`,
         imageUrl: data.imageUrl,
         artist: `IA dans le style ${style.name}`,
         year: "2024",
