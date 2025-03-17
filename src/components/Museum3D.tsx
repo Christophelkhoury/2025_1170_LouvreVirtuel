@@ -60,7 +60,7 @@ function PaintingMesh({ painting, position }: PaintingMeshProps) {
       (texture) => {
         // Configure texture
         texture.encoding = THREE.sRGBEncoding;
-        texture.flipY = false;
+        texture.flipY = true; // Changed from false to true
         texture.needsUpdate = true;
 
         // Update material with loaded texture
