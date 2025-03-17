@@ -9,7 +9,7 @@ export const paintingCollections: PaintingStyle[] = [
       {
         id: 'monet-1',
         title: 'Les Nymphéas',
-        imageUrl: 'https://images.unsplash.com/photo-1580136579312-94651dfd596d',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Claude_Monet_038.jpg/2880px-Claude_Monet_038.jpg',
         artist: 'Inspiré de Claude Monet',
         year: '2024',
         description: 'Une interprétation des célèbres nymphéas de Giverny, capturant la lumière et les reflets sur l\'eau.'
