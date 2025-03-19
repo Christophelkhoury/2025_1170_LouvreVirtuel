@@ -10,7 +10,6 @@ interface AIGeneratorProps {
 export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
-  // Track the last used timestamp to ensure uniqueness
   const [lastTimestamp, setLastTimestamp] = useState(0);
 
   const handleGenerate = async () => {
@@ -25,13 +24,10 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
 
       console.log(`🔹 Using API URL: ${apiUrl}`);
 
-      // Create a more robust random seed with multiple sources of randomness
       const currentTime = Date.now();
-      // Ensure we never use the same timestamp twice
       const uniqueTimestamp = currentTime > lastTimestamp ? currentTime : lastTimestamp + 1;
       setLastTimestamp(uniqueTimestamp);
       
-      // Combine multiple sources of randomness
       const randomValue1 = Math.random().toString(36).substring(2, 10);
       const randomValue2 = Math.random().toString(36).substring(2, 10);
       const randomSeed = `${uniqueTimestamp}-${randomValue1}-${randomValue2}`;
@@ -44,10 +40,10 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          style: style.name,
+          style: `pure ${style.name} artwork, no frame, no background, just the art itself`,
           seed: randomSeed,
-          timestamp: uniqueTimestamp, // Additional randomness parameter
-          randomFactor: Math.floor(Math.random() * 1000000), // Additional numerical random value
+          timestamp: uniqueTimestamp,
+          randomFactor: Math.floor(Math.random() * 1000000),
         }),
       });
 
@@ -68,7 +64,6 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
         throw new Error("No image URL received from the server");
       }
 
-      // Add the unique seed to the title to help track uniqueness
       const uniqueId = `ai-${uniqueTimestamp}-${randomValue1.substring(0, 4)}`;
       
       const generatedPainting: GeneratedPainting = {
@@ -79,6 +74,7 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
         year: "2024",
         description: `Une œuvre générée automatiquement dans le style ${style.name}.`,
         prompt: data.prompt,
+        style: style.id
       };
 
       onGenerated(generatedPainting);
