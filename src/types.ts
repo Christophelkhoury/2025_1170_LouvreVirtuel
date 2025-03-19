@@ -27,4 +27,5 @@ export interface AIGenerationPrompt {
 
 export interface GeneratedPainting extends Painting {
   prompt: string;
+  style: string;
 }
