@@ -18,7 +18,11 @@ function App() {
 
   const getAllPaintings = (): (Painting | GeneratedPainting)[] => {
     if (!selectedStyle) return [];
-    return [...generatedPaintings.filter(p => p.artist.includes(selectedStyle.name)), ...selectedStyle.paintings];
+    const currentStylePaintings = [...selectedStyle.paintings];
+    const currentStyleGeneratedPaintings = generatedPaintings.filter(
+      p => p.style === selectedStyle.id
+    );
+    return [...currentStyleGeneratedPaintings, ...currentStylePaintings];
   };
 
   return (
