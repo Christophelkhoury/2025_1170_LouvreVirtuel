@@ -40,7 +40,7 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          style: `pure ${style.name} artwork, no frame, no background, just the art itself`,
+          style: `pure ${style.name} artwork, masterpiece painting, no frame, no border, no background, focused on the art itself`,
           seed: randomSeed,
           timestamp: uniqueTimestamp,
           randomFactor: Math.floor(Math.random() * 1000000),
@@ -68,11 +68,11 @@ export function AIGenerator({ style, onGenerated }: AIGeneratorProps) {
       
       const generatedPainting: GeneratedPainting = {
         id: uniqueId,
-        title: `Peinture IA en ${style.name} #${uniqueId.slice(-6)}`,
+        title: `${style.name} - IA #${uniqueId.slice(-4)}`,
         imageUrl: data.imageUrl,
         artist: `IA dans le style ${style.name}`,
         year: "2024",
-        description: `Une œuvre générée automatiquement dans le style ${style.name}.`,
+        description: `Une œuvre générée par intelligence artificielle dans le style ${style.name}.`,
         prompt: data.prompt,
         style: style.id
       };
