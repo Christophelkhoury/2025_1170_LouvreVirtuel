@@ -32,7 +32,8 @@ def status():
     if HUGGINGFACE_API_KEY:
         try:
             test_response = requests.get(
-                "url = "https://api-inference.huggingface.co/v1/models/runwayml/stable-diffusion-v1-5"
+                "url = "url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+"
 ",
                 headers={"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
             )
