@@ -77,7 +77,7 @@ def generate_image():
         "parameters": {
             "num_inference_steps": 50,
             "guidance_scale": 7.5,
-            "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy",
+            "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background",
             "seed": abs(hash(seed)) % (2**32) if seed else None  # Convert string seed to numerical
         }
     }
@@ -86,6 +86,8 @@ def generate_image():
     try:
         response = requests.post(url, headers=headers, json=payload)
         print(f"📥 Hugging Face API Response Status: {response.status_code}")
+        print(f"📥 Hugging Face API Response Headers: {response.headers}")
+        print(f"📥 Hugging Face API Response Body: {response.text[:200]}...")  # Print first 200 chars of response
 
         if response.status_code == 200:
             # Convert binary image data to base64
