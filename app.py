@@ -12,6 +12,8 @@ HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 
 if not HUGGINGFACE_API_KEY:
     print("🚨 Warning: HUGGINGFACE_API_KEY is missing!")
+elif not HUGGINGFACE_API_KEY.startswith("hf_"):
+    print("🚨 Warning: HUGGINGFACE_API_KEY format appears invalid!")
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -26,9 +28,23 @@ def home():
 
 @app.route("/api/status", methods=["GET"])
 def status():
+    # Test the API key with a simple model query
+    if HUGGINGFACE_API_KEY:
+        try:
+            test_response = requests.get(
+                "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
+                headers={"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
+            )
+            api_status = "valid" if test_response.status_code == 200 else f"invalid (status: {test_response.status_code})"
+        except Exception as e:
+            api_status = f"error ({str(e)})"
+    else:
+        api_status = "missing"
+
     return jsonify({
         "status": "healthy",
-        "api_key_configured": bool(HUGGINGFACE_API_KEY),
+        "api_key_status": api_status,
+        "api_key_format": "valid" if HUGGINGFACE_API_KEY and HUGGINGFACE_API_KEY.startswith("hf_") else "invalid",
         "message": "Using Hugging Face API for AI image generation."
     })
 
@@ -38,6 +54,10 @@ def generate_image():
     if not HUGGINGFACE_API_KEY:
         print("🚨 API Key MISSING in Flask!")
         return jsonify({"error": "API key missing"}), 401
+
+    if not HUGGINGFACE_API_KEY.startswith("hf_"):
+        print("🚨 Invalid API Key format!")
+        return jsonify({"error": "Invalid API key format"}), 401
 
     print(f"✅ Using API Key: {HUGGINGFACE_API_KEY[:6]}**********")
 
@@ -86,8 +106,8 @@ def generate_image():
     try:
         response = requests.post(url, headers=headers, json=payload)
         print(f"📥 Hugging Face API Response Status: {response.status_code}")
-        print(f"📥 Hugging Face API Response Headers: {response.headers}")
-        print(f"📥 Hugging Face API Response Body: {response.text[:200]}...")  # Print first 200 chars of response
+        print(f"📥 Hugging Face API Response Headers: {dict(response.headers)}")
+        print(f"📥 Hugging Face API Response Body: {response.text[:200]}...")
 
         if response.status_code == 200:
             # Convert binary image data to base64
@@ -116,4 +136,5 @@ def generate_image():
 
 if __name__ == "__main__":
     print("🚀 Using Hugging Face API for AI Image Generation")
+    print(f"🔑 API Key Status: {'Valid format' if HUGGINGFACE_API_KEY and HUGGINGFACE_API_KEY.startswith('hf_') else 'Invalid format'}")
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)
