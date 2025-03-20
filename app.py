@@ -18,8 +18,8 @@ elif not HUGGINGFACE_API_KEY.startswith("hf_"):
 # Initialize Flask App
 app = Flask(__name__)
 
-# Fix CORS for Netlify communication
-CORS(app, resources={r"/api/*": {"origins": ["https://museevirtuel.netlify.app", "http://localhost:5173"]}})
+# Fix CORS for development and production
+CORS(app, resources={r"/api/*": {"origins": ["https://museevirtuel.netlify.app", "http://localhost:5173", "http://localhost:4173"]}})
 
 # API Health Check Route
 @app.route("/", methods=["GET"])
@@ -82,7 +82,7 @@ def generate_image():
     
     # Use the random factor to select a variation
     variation_index = random_factor % len(variations)
-    prompt = f"{base_prompt}, {variations[variation_index]}"
+    prompt = f"{base_prompt}, {variations[variation_index]}, no frame, no border, no background, pure artwork"
     
     print(f"📝 Generated prompt: {prompt}")
 
@@ -97,7 +97,7 @@ def generate_image():
         "parameters": {
             "num_inference_steps": 50,
             "guidance_scale": 7.5,
-            "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background",
+            "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
             "seed": abs(hash(seed)) % (2**32) if seed else None  # Convert string seed to numerical
         }
     }
