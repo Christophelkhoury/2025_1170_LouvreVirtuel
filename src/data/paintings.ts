@@ -201,13 +201,13 @@ export const paintingCollections: PaintingStyle[] = [
     name: 'Cubisme',
     description: 'Perspectives multiples et formes géométriques',
     paintings: [
-      {
-        id: 'picasso-1',
-        title: 'Les Demoiselles d\'Avignon',
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4c/Les_Demoiselles_d%27Avignon.jpg/600px-Les_Demoiselles_d%27Avignon.jpg',
-        artist: 'Pablo Picasso',
-        year: '1907',
-        description: 'Un tableau révolutionnaire qui marque le début du cubisme.'
+           {
+        id: 'cubism-2',
+        title: 'Portrait de Pablo Picasso',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Juan_Gris_-_Portrait_of_Pablo_Picasso_-_Google_Art_Project.jpg/520px-Juan_Gris_-_Portrait_of_Pablo_Picasso_-_Google_Art_Project.jpg',
+        artist: 'Juan Gris',
+        year: '1912',
+        description: 'Un exemple du cubisme synthétique où formes géométriques et aplats de couleur s’unissent pour représenter Picasso.'
       },
       {
         id: 'braque-1',
@@ -226,13 +226,13 @@ export const paintingCollections: PaintingStyle[] = [
         description: 'Un chef-d\'œuvre du cubisme analytique.'
       },
       {
-        id: 'cubism-4',
-        title: 'Le Violoniste',
-        imageUrl: 'https://www.artchive.com/wp-content/uploads/2023/04/The-Violin-Gris-Juan-1916-2-1.jpg',
-        artist: 'Juan Gris',
-        year: '1916',
-        description: 'Une approche plus colorée et structurée du cubisme.'
-      }
+      id: 'cubism-1',
+      title: 'Maisons et arbre',
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ad/Georges_Braque%2C_1908%2C_Maisons_et_arbre%2C_oil_on_canvas%2C_40.5_x_32.5_cm%2C_Lille_M%C3%A9tropole_Museum_of_Modern%2C_Contemporary_and_Outsider_Art.jpg/540px-Georges_Braque%2C_1908%2C_Maisons_et_arbre%2C_oil_on_canvas%2C_40.5_x_32.5_cm%2C_Lille_M%C3%A9tropole_Museum_of_Modern%2C_Contemporary_and_Outsider_Art.jpg',
+      artist: 'Georges Braque',
+      year: '1908',
+      description: 'Une œuvre cubiste précoce montrant la décomposition des formes naturelles en volumes géométriques simples.'
+    },
     ]
   },
   {
