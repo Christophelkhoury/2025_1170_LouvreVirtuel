@@ -209,14 +209,15 @@ export const paintingCollections: PaintingStyle[] = [
         year: '1912',
         description: 'Un exemple du cubisme synthétique où formes géométriques et aplats de couleur s’unissent pour représenter Picasso.'
       },
-      {
-        id: 'braque-1',
-        title: 'Nature morte à la chaise cannée',
-        imageUrl: 'https://www.museepicassoparis.fr/sites/default/files/2022-02/nature%20morte%20%C3%A0%20la%20chaise%20can%C3%A9e%20HD%20OK.jpg',
-        artist: 'Pablo Picasso',
-        year: '1912',
-        description: 'Une des premières œuvres utilisant la technique du collage.'
+        {
+        id: 'cubism-4',
+        title: 'Femme au cheval',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f8/Jean_Metzinger%2C_1911-12%2C_La_Femme_au_Cheval_-_The_Rider.jpg/960px-Jean_Metzinger%2C_1911-12%2C_La_Femme_au_Cheval_-_The_Rider.jpg',
+        artist: 'Jean Metzinger',
+        year: '1911–1912',
+        description: 'Un chef-d’œuvre du cubisme analytique, combinant fragmentation de la forme, perspective multiple et élégance féminine.'
       },
+
       {
         id: 'cubism-3',
         title: 'Homme à la guitare',
