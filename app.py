@@ -31,7 +31,7 @@ def status():
     if HUGGINGFACE_API_KEY:
         try:
             test_response = requests.get(
-                "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2",
+                "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1",
                 headers={"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
             )
             api_status = "valid" if test_response.status_code == 200 else f"invalid (status: {test_response.status_code})"
@@ -86,7 +86,7 @@ def generate_image():
     print(f"📝 Generated prompt: {prompt}")
 
     # Using a more reliable model for art generation
-    url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2"
+    url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1"
     headers = {
         "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
         "Content-Type": "application/json"
