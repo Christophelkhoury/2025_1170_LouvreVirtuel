@@ -52,8 +52,10 @@ app.use('/api', verifyApiKey);
 app.post('/api/generate', async (req, res) => {
   try {
     const { style } = req.body;
+    console.log('Received request with style:', style);
 
     if (!style) {
+      console.error('Style parameter missing in request');
       return res.status(400).json({
         error: 'Missing parameter',
         details: 'Style parameter is required'
@@ -61,17 +63,31 @@ app.post('/api/generate', async (req, res) => {
     }
 
     if (!STABLE_DIFFUSION_API_KEY) {
-      console.error('API Key Missing: STABLE_DIFFUSION_API_KEY is not set');
+      console.error('API Key Missing: STABLE_DIFFUSION_API_KEY is not set in environment');
       return res.status(401).json({
         error: 'API Key Missing',
         details: 'Stable Diffusion API key is not configured'
       });
     }
 
+    console.log('API Key present:', STABLE_DIFFUSION_API_KEY ? 'Yes' : 'No');
     console.log(`Generating image for style: ${style}`);
-    console.log('Making request to ModelsLab API...');
+    console.log('Making request to ModelsLab API:', API_ENDPOINT);
 
     try {
+      const requestBody = {
+        prompt: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
+        negative_prompt: "blurry, low quality, distorted, deformed",
+        width: 1024,
+        height: 1024,
+        samples: 1,
+        num_inference_steps: 30,
+        guidance_scale: 7.5,
+        safety_checker: true
+      };
+
+      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -79,34 +95,24 @@ app.post('/api/generate', async (req, res) => {
           'Accept': 'application/json',
           'Authorization': `Bearer ${STABLE_DIFFUSION_API_KEY}`
         },
-        body: JSON.stringify({
-          prompt: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
-          negative_prompt: "blurry, low quality, distorted, deformed",
-          width: 1024,
-          height: 1024,
-          samples: 1,
-          num_inference_steps: 30,
-          guidance_scale: 7.5,
-          safety_checker: true
-        })
+        body: JSON.stringify(requestBody)
       });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers));
 
       const data = await response.json();
       
-      // Log the full response for debugging
-      console.log('ModelsLab API Response:', {
-        status: response.status,
-        headers: Object.fromEntries(response.headers),
-        body: data
-      });
+      console.log('ModelsLab API Response data:', JSON.stringify(data, null, 2));
 
       if (!response.ok) {
-        // Enhanced error reporting
         const errorDetails = {
           statusCode: response.status,
           apiError: data.message || data.error || response.statusText,
           requestId: response.headers.get('x-request-id'),
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          endpoint: API_ENDPOINT,
+          requestBody: requestBody
         };
 
         console.error('ModelsLab API Error:', errorDetails);
@@ -118,11 +124,12 @@ app.post('/api/generate', async (req, res) => {
       }
 
       if (!data.output || !data.output[0]) {
-        console.error('Invalid API Response:', data);
+        console.error('Invalid API Response - No output data:', data);
         return res.status(502).json({
           error: 'Invalid API response',
           details: 'Response did not contain image data',
-          response: data
+          response: data,
+          endpoint: API_ENDPOINT
         });
       }
 
@@ -133,15 +140,23 @@ app.post('/api/generate', async (req, res) => {
       });
 
     } catch (fetchError) {
-      console.error('Fetch Error:', fetchError);
+      console.error('Fetch Error:', {
+        message: fetchError.message,
+        stack: fetchError.stack,
+        endpoint: API_ENDPOINT
+      });
       return res.status(500).json({
         error: 'Network Error',
-        details: fetchError.message
+        details: fetchError.message,
+        endpoint: API_ENDPOINT
       });
     }
 
   } catch (error) {
-    console.error('Server Error:', error);
+    console.error('Server Error:', {
+      message: error.message,
+      stack: error.stack
+    });
     res.status(500).json({
       error: 'Server error',
       details: error.message
