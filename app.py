@@ -117,55 +117,94 @@ def generate_image():
         start_time = time.time()
         
         # Make request to ModelsLab API
-        response = requests.post(
-            "https://modelslab.com/api/v1/stability/text2img",
-            headers={
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"
-            },
-            json={
-                "prompt": prompt,
-                "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
-                "width": 1024,
-                "height": 1024,
-                "samples": 1,
-                "num_inference_steps": 30,
-                "seed": abs(hash(seed)) % (2**32) if seed else None,
-                "guidance_scale": 7.5,
-                "safety_checker": True,
-                "model": "stable-diffusion-xl-1024-v1-0"
-            }
-        )
+        max_retries = 3
+        retry_delay = 2  # seconds
         
-        print(f"🔍 API response status: {response.status_code}")
-        print(f"🔍 API response: {response.text}")
-        
-        if response.status_code != 200:
-            raise Exception(f"Failed to generate image: {response.text}")
+        for attempt in range(max_retries):
+            try:
+                print(f"🎨 Attempt {attempt + 1}/{max_retries} to generate image...")
+                response = requests.post(
+                    "https://modelslab.com/api/v1/stability/text2img",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"
+                    },
+                    json={
+                        "prompt": prompt,
+                        "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
+                        "width": 1024,
+                        "height": 1024,
+                        "samples": 1,
+                        "num_inference_steps": 30,
+                        "seed": abs(hash(seed)) % (2**32) if seed else None,
+                        "guidance_scale": 7.5,
+                        "safety_checker": True,
+                        "model": "stable-diffusion-xl-1024-v1-0"
+                    },
+                    timeout=30  # Add timeout to prevent hanging
+                )
+                
+                print(f"🔍 API response status: {response.status_code}")
+                print(f"🔍 API response: {response.text}")
+                
+                if response.status_code == 429:  # Rate limit
+                    retry_after = int(response.headers.get('Retry-After', retry_delay))
+                    print(f"⚠️ Rate limited. Waiting {retry_after} seconds...")
+                    time.sleep(retry_after)
+                    continue
+                
+                if response.status_code != 200:
+                    data = response.json()
+                    if data.get("status") == "error" and "Server Error" in data.get("message", ""):
+                        if attempt < max_retries - 1:
+                            print(f"⚠️ Server error, retrying in {retry_delay} seconds...")
+                            time.sleep(retry_delay)
+                            continue
+                    raise Exception(f"Failed to generate image: {response.text}")
 
-        data = response.json()
-        
-        # Check for different possible response formats
-        if data.get("status") == "success" and data.get("output") and data["output"][0]:
-            image_url = data["output"][0]
-        elif data.get("images") and data["images"][0]:
-            image_url = data["images"][0]
-        elif data.get("data") and data["data"].get("url"):
-            image_url = data["data"]["url"]
-        else:
-            print("🔍 Full response data:", data)
-            raise Exception("No image data in response. Response format: " + str(data))
+                data = response.json()
+                
+                # Check for different possible response formats
+                if data.get("status") == "success" and data.get("output") and data["output"][0]:
+                    image_url = data["output"][0]
+                elif data.get("images") and data["images"][0]:
+                    image_url = data["images"][0]
+                elif data.get("data") and data["data"].get("url"):
+                    image_url = data["data"]["url"]
+                else:
+                    print("🔍 Full response data:", data)
+                    if attempt < max_retries - 1:
+                        print(f"⚠️ No image data, retrying in {retry_delay} seconds...")
+                        time.sleep(retry_delay)
+                        continue
+                    raise Exception("No image data in response. Response format: " + str(data))
 
-        generation_time = time.time() - start_time
-        print(f"⏱️ Generation took {generation_time:.2f} seconds")
+                generation_time = time.time() - start_time
+                print(f"⏱️ Generation took {generation_time:.2f} seconds")
+                    
+                print("✅ Image generated successfully")
+                return jsonify({
+                    "imageUrl": image_url,
+                    "prompt": prompt,
+                    "generationTime": f"{generation_time:.2f}s"
+                })
+
+            except requests.exceptions.Timeout:
+                print(f"⚠️ Request timed out, attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                raise Exception("Request timed out after multiple attempts")
             
-        print("✅ Image generated successfully")
-        return jsonify({
-            "imageUrl": image_url,
-            "prompt": prompt,
-            "generationTime": f"{generation_time:.2f}s"
-        })
+            except requests.exceptions.RequestException as e:
+                print(f"⚠️ Request failed: {str(e)}, attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                raise Exception(f"Request failed after multiple attempts: {str(e)}")
+
+        raise Exception("Failed to generate image after multiple attempts")
 
     except Exception as e:
         print(f"🚨 Error generating image: {str(e)}")
