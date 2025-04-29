@@ -10,6 +10,14 @@ from dotenv import load_dotenv
 load_dotenv()
 STABLE_DIFFUSION_API_KEY = os.getenv("STABLE_DIFFUSION_API_KEY")
 
+# Debug logging for environment variables
+print("🔍 Environment Variables Check:")
+print(f"STABLE_DIFFUSION_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}")
+if STABLE_DIFFUSION_API_KEY:
+    print(f"STABLE_DIFFUSION_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
+    print(f"STABLE_DIFFUSION_API_KEY first 4 chars: {STABLE_DIFFUSION_API_KEY[:4]}...")
+print("All environment variables:", os.environ.keys())
+
 # Validate API token format
 def is_valid_token(token):
     """Check if the token has the correct format"""
@@ -20,6 +28,7 @@ if not STABLE_DIFFUSION_API_KEY:
     print("Please get your API key from https://stablediffusionapi.com")
 elif not is_valid_token(STABLE_DIFFUSION_API_KEY):
     print("🚨 Warning: STABLE_DIFFUSION_API_KEY format appears invalid!")
+    print(f"Token length: {len(STABLE_DIFFUSION_API_KEY)}")
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -53,11 +62,15 @@ def status():
 
     try:
         # Test the API key with a simple request
+        print("🔍 Testing API key with balance check...")
         response = requests.get(
             "https://stablediffusionapi.com/api/v3/user/balance",
             headers={"Content-Type": "application/json"},
             json={"key": STABLE_DIFFUSION_API_KEY}
         )
+        
+        print(f"🔍 Balance check response status: {response.status_code}")
+        print(f"🔍 Balance check response: {response.text}")
         
         if response.status_code == 200:
             balance_data = response.json()
@@ -68,6 +81,7 @@ def status():
             remaining_credits = None
 
     except Exception as e:
+        print(f"🔍 Error checking balance: {str(e)}")
         api_status = f"error ({str(e)})"
         remaining_credits = None
 
