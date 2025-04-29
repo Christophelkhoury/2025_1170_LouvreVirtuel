@@ -6,53 +6,50 @@ import fetch from 'node-fetch';
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 10000;
 
-// Enhanced CORS configuration with specific origin and credentials
-app.use(cors({
-  origin: ['http://localhost:5173', 'https://stackblitz.com'],
-  credentials: true,
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+// Enable CORS
+app.use(cors());
 app.use(express.json());
 
-const STABILITY_API_KEY = process.env.STABILITY_AI_API_KEY;
-const API_ENDPOINT = "https://api.stability.ai/v2beta/stable-image/generate/sd3";
+// Get API key from environment variables
+const STABLE_DIFFUSION_API_KEY = process.env.STABLE_DIFFUSION_API_KEY;
 
 // Validate API key format
 const isValidApiKey = (key) => {
-  return typeof key === 'string' && key.startsWith('sk-') && key.length > 20;
+    return typeof key === 'string' && key.length > 20;
 };
 
 // Health check endpoint with API key status
-app.get('/', (req, res) => {
-  const apiKeyStatus = isValidApiKey(STABILITY_API_KEY) ? 'valid format' : 'invalid format';
-  res.json({
-    status: 'healthy',
-    message: 'AI Art Generator API is running',
-    apiKeyStatus
-  });
+app.get('/api/status', (req, res) => {
+    const apiKeyStatus = isValidApiKey(STABLE_DIFFUSION_API_KEY) ? 'valid format' : 'invalid format';
+    res.json({
+        status: 'healthy',
+        apiKeyStatus
+    });
 });
 
 // Enhanced API key verification middleware
-app.use('/api', (req, res, next) => {
-  if (!STABILITY_API_KEY) {
-    return res.status(500).json({
-      error: 'API Configuration Error',
-      details: 'Stability AI API key is not configured'
-    });
-  }
-  
-  if (!isValidApiKey(STABILITY_API_KEY)) {
-    return res.status(500).json({
-      error: 'API Key Format Error',
-      details: 'The provided Stability AI API key appears to be invalid'
-    });
-  }
-  
-  next();
-});
+const verifyApiKey = (req, res, next) => {
+    if (!STABLE_DIFFUSION_API_KEY) {
+        return res.status(401).json({
+            error: 'API Key Missing',
+            details: 'Stable Diffusion API key is not configured'
+        });
+    }
+
+    if (!isValidApiKey(STABLE_DIFFUSION_API_KEY)) {
+        return res.status(401).json({
+            error: 'API Key Format Error',
+            details: 'Invalid API key format'
+        });
+    }
+
+    next();
+};
+
+// Apply API key verification to all routes
+app.use('/api', verifyApiKey);
 
 app.post('/api/generate', async (req, res) => {
   try {
@@ -73,7 +70,7 @@ app.post('/api/generate', async (req, res) => {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': `Bearer ${STABILITY_API_KEY}`
+        'Authorization': `Bearer ${STABLE_DIFFUSION_API_KEY}`
       },
       body: JSON.stringify({
         prompt: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
@@ -143,11 +140,10 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log('API available at http://localhost:' + PORT);
-  console.log('Stability AI API Key status:', isValidApiKey(STABILITY_API_KEY) ? 'valid format' : 'invalid format');
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+  console.log('API available at http://localhost:' + port);
+  console.log('Stable Diffusion API Key status:', isValidApiKey(STABLE_DIFFUSION_API_KEY) ? 'valid format' : 'invalid format');
 }).on('error', (error) => {
   console.error('Server failed to start:', error);
   process.exit(1);

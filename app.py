@@ -5,23 +5,21 @@ import base64
 import requests
 import time
 from dotenv import load_dotenv
-import replicate
 
 # Load environment variables from .env file
 load_dotenv()
-REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
+STABLE_DIFFUSION_API_KEY = os.getenv("STABLE_DIFFUSION_API_KEY")
 
 # Validate API token format
 def is_valid_token(token):
     """Check if the token has the correct format"""
     return token and isinstance(token, str) and len(token) > 20
 
-if not REPLICATE_API_TOKEN:
-    print("🚨 Warning: REPLICATE_API_TOKEN is missing!")
-    print("Please get your API token from https://replicate.com/account/api-tokens")
-elif not is_valid_token(REPLICATE_API_TOKEN):
-    print("🚨 Warning: REPLICATE_API_TOKEN format appears invalid!")
-    print("Token should be a long string starting with 'r8_'")
+if not STABLE_DIFFUSION_API_KEY:
+    print("🚨 Warning: STABLE_DIFFUSION_API_KEY is missing!")
+    print("Please get your API key from https://stablediffusionapi.com")
+elif not is_valid_token(STABLE_DIFFUSION_API_KEY):
+    print("🚨 Warning: STABLE_DIFFUSION_API_KEY format appears invalid!")
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -38,76 +36,65 @@ def home():
 @app.route("/api/status", methods=["GET"])
 def status():
     """
-    Status endpoint that checks if the API token is valid and has remaining credits
+    Status endpoint that checks if the API token is valid
     """
-    if not REPLICATE_API_TOKEN:
+    if not STABLE_DIFFUSION_API_KEY:
         return jsonify({
             "status": "error",
-            "message": "API token missing",
-            "details": "Please set REPLICATE_API_TOKEN in your environment variables"
+            "message": "API key missing",
+            "details": "Please set STABLE_DIFFUSION_API_KEY in your environment variables"
         }), 500
 
-    if not is_valid_token(REPLICATE_API_TOKEN):
+    if not is_valid_token(STABLE_DIFFUSION_API_KEY):
         return jsonify({
             "status": "error",
-            "message": "Invalid API token format",
-            "details": "Token should be a long string starting with 'r8_'"
+            "message": "Invalid API key format"
         }), 500
 
     try:
-        # Test the API token with a simple model query
+        # Test the API key with a simple request
         response = requests.get(
-            "https://api.replicate.com/v1/models",
-            headers={"Authorization": f"Token {REPLICATE_API_TOKEN}"}
+            "https://stablediffusionapi.com/api/v3/user/balance",
+            headers={"Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"}
         )
         
         if response.status_code == 200:
-            # Check remaining credits
-            credits_response = requests.get(
-                "https://api.replicate.com/v1/credits",
-                headers={"Authorization": f"Token {REPLICATE_API_TOKEN}"}
-            )
-            
-            if credits_response.status_code == 200:
-                credits_data = credits_response.json()
-                remaining_seconds = credits_data.get("remaining_seconds", 0)
-                api_status = "valid"
-            else:
-                remaining_seconds = None
-                api_status = f"valid but can't check credits (status: {credits_response.status_code})"
+            balance_data = response.json()
+            remaining_credits = balance_data.get("credits", 0)
+            api_status = "valid"
         else:
             api_status = f"invalid (status: {response.status_code})"
-            remaining_seconds = None
+            remaining_credits = None
 
     except Exception as e:
         api_status = f"error ({str(e)})"
-        remaining_seconds = None
+        remaining_credits = None
 
     return jsonify({
         "status": "healthy",
         "api_status": api_status,
-        "remaining_seconds": remaining_seconds,
-        "message": "Using Replicate API for AI image generation"
+        "remaining_credits": remaining_credits,
+        "message": "Using Stable Diffusion API for AI image generation"
     })
 
 # AI Image Generation Route
 @app.route("/api/generate", methods=["POST"])
 def generate_image():
     """
-    Main endpoint for generating images using Replicate API.
+    Main endpoint for generating images using Stable Diffusion API.
     Expects a JSON payload with:
     - style: string describing the art style
     - seed: string for reproducible generation
     - timestamp: number for uniqueness
     - randomFactor: number for variation selection
     """
-    if not REPLICATE_API_TOKEN:
-        print("🚨 API Token MISSING!")
-        return jsonify({"error": "API token missing"}), 401
+    if not STABLE_DIFFUSION_API_KEY:
+        print("🚨 API Key MISSING!")
+        return jsonify({"error": "API key missing"}), 401
 
-    if not is_valid_token(REPLICATE_API_TOKEN):
-        print("🚨 Invalid API Token format!")
-        return jsonify({"error": "Invalid API token format"}), 401
+    if not is_valid_token(STABLE_DIFFUSION_API_KEY):
+        print("🚨 Invalid API Key format!")
+        return jsonify({"error": "Invalid API key format"}), 401
 
     try:
         # Extract parameters from request
@@ -138,27 +125,71 @@ def generate_image():
         
         print(f"📝 Generated prompt: {prompt}")
 
-        # Generate image using Replicate API
+        # Generate image using Stable Diffusion API
         print("🎨 Generating image...")
         start_time = time.time()
         
-        output = replicate.run(
-            "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-            input={
+        # First request to initiate generation
+        init_response = requests.post(
+            "https://stablediffusionapi.com/api/v3/text2img",
+            headers={
+                "Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
                 "prompt": prompt,
                 "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
-                "num_inference_steps": 30,
+                "width": "512",
+                "height": "512",
+                "samples": "1",
+                "num_inference_steps": "20",
+                "seed": abs(hash(seed)) % (2**32) if seed else None,
                 "guidance_scale": 7.5,
-                "seed": abs(hash(seed)) % (2**32) if seed else None
+                "safety_checker": "yes",
+                "webhook": None,
+                "track_id": None
             }
         )
+        
+        if init_response.status_code != 200:
+            raise Exception(f"Failed to initiate generation: {init_response.text}")
+
+        init_data = init_response.json()
+        
+        # If the image is ready immediately
+        if init_data.get("status") == "success":
+            image_url = init_data["output"][0]
+        else:
+            # Wait for the image to be ready
+            generation_id = init_data.get("id")
+            if not generation_id:
+                raise Exception("No generation ID received")
+
+            # Poll for the result
+            max_attempts = 30
+            for attempt in range(max_attempts):
+                time.sleep(2)  # Wait 2 seconds between checks
+                
+                status_response = requests.get(
+                    f"https://stablediffusionapi.com/api/v3/text2img/{generation_id}",
+                    headers={"Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"}
+                )
+                
+                if status_response.status_code == 200:
+                    status_data = status_response.json()
+                    if status_data.get("status") == "success":
+                        image_url = status_data["output"][0]
+                        break
+                    elif status_data.get("status") == "failed":
+                        raise Exception(f"Generation failed: {status_data.get('message', 'Unknown error')}")
+                else:
+                    raise Exception(f"Failed to check status: {status_response.text}")
+            else:
+                raise Exception("Generation timed out")
 
         generation_time = time.time() - start_time
         print(f"⏱️ Generation took {generation_time:.2f} seconds")
 
-        # Get the image URL from the output
-        image_url = output[0]
-        
         # Download the image and convert to base64
         response = requests.get(image_url)
         if response.status_code == 200:
@@ -182,6 +213,6 @@ def generate_image():
         }), 500
 
 if __name__ == "__main__":
-    print("🚀 Using Replicate API for AI Image Generation")
-    print(f"🔑 API Token Status: {'Valid' if REPLICATE_API_TOKEN and is_valid_token(REPLICATE_API_TOKEN) else 'Invalid'}")
+    print("🚀 Using Stable Diffusion API for AI Image Generation")
+    print(f"🔑 API Key Status: {'Valid' if STABLE_DIFFUSION_API_KEY and is_valid_token(STABLE_DIFFUSION_API_KEY) else 'Invalid'}")
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)

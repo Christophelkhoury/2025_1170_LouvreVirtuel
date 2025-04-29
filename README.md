@@ -77,4 +77,13 @@ pip install -r requirements.txt
 
 Si vous rencontrez une erreur lors de la génération d'une image (par exemple un message **"Service Unavailable"**), cela peut être dû à une surcharge ou une instabilité de l'API Hugging Face.
 
-> **Solution** : fermez simplement l'onglet et rouvrez l'application depuis le lien d'origine. Cela relance la session et permet de regénérer correctement l’image.
+> **Solution** : fermez simplement l'onglet et rouvrez l'application depuis le lien d'origine. Cela relance la session et permet de regénérer correctement l'image.
+
+# Environment Variables
+Create a `.env` file in the root directory with the following variables:
+```
+STABLE_DIFFUSION_API_KEY=your_api_key_here
+PORT=10000
+```
+
+Note: Never commit your actual API key to the repository. Keep it secure in your environment variables.
