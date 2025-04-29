@@ -4,9 +4,7 @@ import os
 import base64
 from io import BytesIO
 from dotenv import load_dotenv
-import torch
-from diffusers import StableDiffusionPipeline
-from PIL import Image
+import sys
 
 # Load environment variables from .env file (if any)
 load_dotenv()
@@ -20,6 +18,23 @@ CORS(app, resources={r"/api/*": {"origins": ["https://museevirtuel.netlify.app",
 # Global variable to store our model pipeline
 pipe = None
 
+def check_dependencies():
+    """
+    Check if all required dependencies are available and compatible
+    """
+    try:
+        import torch
+        import numpy as np
+        from diffusers import StableDiffusionPipeline
+        from PIL import Image
+        return True
+    except ImportError as e:
+        print(f"🚨 Missing dependency: {str(e)}")
+        return False
+    except Exception as e:
+        print(f"🚨 Error checking dependencies: {str(e)}")
+        return False
+
 def initialize_model():
     """
     Initialize the Stable Diffusion model.
@@ -28,6 +43,14 @@ def initialize_model():
     """
     global pipe
     try:
+        # First check dependencies
+        if not check_dependencies():
+            print("🚨 Dependencies check failed")
+            return False
+
+        import torch
+        from diffusers import StableDiffusionPipeline
+        
         # Use the base Stable Diffusion 1.5 model
         model_id = "runwayml/stable-diffusion-v1-5"
         
@@ -70,12 +93,20 @@ def status():
     Status endpoint that checks if the model is loaded and ready
     """
     global pipe
-    return jsonify({
-        "status": "healthy",
-        "model_loaded": pipe is not None,
-        "device": "cuda" if torch.cuda.is_available() else "cpu",
-        "message": "Using local Stable Diffusion for AI image generation"
-    })
+    try:
+        import torch
+        return jsonify({
+            "status": "healthy",
+            "model_loaded": pipe is not None,
+            "device": "cuda" if torch.cuda.is_available() else "cpu",
+            "message": "Using local Stable Diffusion for AI image generation"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "message": "Error checking status"
+        }), 500
 
 # AI Image Generation Route
 @app.route("/api/generate", methods=["POST"])
@@ -127,6 +158,7 @@ def generate_image():
         # Set the random seed if provided
         generator = None
         if seed:
+            import torch
             generator = torch.Generator("cuda" if torch.cuda.is_available() else "cpu")
             generator.manual_seed(abs(hash(seed)) % (2**32))
 
@@ -167,4 +199,4 @@ if __name__ == "__main__":
         app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)
     else:
         print("🚨 Failed to initialize model")
-        exit(1)
+        sys.exit(1)
