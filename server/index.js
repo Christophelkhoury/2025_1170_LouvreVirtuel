@@ -1,17 +1,23 @@
 import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
+import crypto from 'crypto';
 
 const app = express();
-const port = 10000;
+const port = process.env.PORT || 10000;
 
 // Enable CORS
 app.use(cors());
 app.use(express.json());
 
-// Get API key from environment variables
+// Get API key from Render environment variables
 const STABLE_DIFFUSION_API_KEY = process.env.STABILITY_API_KEY;
 const API_ENDPOINT = 'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image';
+
+// Helper function to generate a hash
+const generateHash = (input) => {
+    return crypto.createHash('sha256').update(input).digest('hex');
+};
 
 // Validate API key format
 const isValidApiKey = (key) => {
@@ -24,7 +30,8 @@ app.get('/api/status', (req, res) => {
     res.json({
         status: 'healthy',
         apiKeyStatus,
-        message: 'Using Stability AI API for image generation'
+        message: 'Using Stability AI API for image generation',
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
@@ -33,14 +40,14 @@ const verifyApiKey = (req, res, next) => {
     if (!STABLE_DIFFUSION_API_KEY) {
         return res.status(401).json({
             error: 'API Key Missing',
-            details: 'Stability AI API key is not configured'
+            details: 'Stability AI API key is not configured in Render environment variables'
         });
     }
 
     if (!isValidApiKey(STABLE_DIFFUSION_API_KEY)) {
         return res.status(401).json({
             error: 'API Key Format Error',
-            details: 'Invalid API key format'
+            details: 'Invalid API key format in Render environment variables'
         });
     }
 
@@ -67,7 +74,7 @@ app.post('/api/generate', async (req, res) => {
       console.error('API Key Missing: STABILITY_API_KEY is not set in environment');
       return res.status(401).json({
         error: 'API Key Missing',
-        details: 'Stability AI API key is not configured'
+        details: 'Stability AI API key is not configured. Please set the STABILITY_API_KEY environment variable.'
       });
     }
 
@@ -88,7 +95,7 @@ app.post('/api/generate', async (req, res) => {
         width: 1024,
         samples: 1,
         steps: 30,
-        seed: seed ? abs(hash(seed)) % (2**32) : null
+        seed: Math.floor(Math.random() * (2**32))
       };
 
       console.log('Request body:', JSON.stringify(requestBody, null, 2));
