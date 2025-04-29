@@ -10,8 +10,8 @@ app.use(cors());
 app.use(express.json());
 
 // Get API key from environment variables
-const STABLE_DIFFUSION_API_KEY = process.env.STABLE_DIFFUSION_API_KEY;
-const API_ENDPOINT = 'https://api.modelslab.com/v1/stability/text2img';
+const STABLE_DIFFUSION_API_KEY = process.env.MODELSLAB_API_KEY;
+const API_ENDPOINT = 'https://modelslab.com/api/v1/stability/text2img';
 
 // Validate API key format
 const isValidApiKey = (key) => {
@@ -23,7 +23,8 @@ app.get('/api/status', (req, res) => {
     const apiKeyStatus = isValidApiKey(STABLE_DIFFUSION_API_KEY) ? 'valid format' : 'invalid format';
     res.json({
         status: 'healthy',
-        apiKeyStatus
+        apiKeyStatus,
+        message: 'Using ModelsLab API for AI image generation'
     });
 });
 
@@ -32,7 +33,7 @@ const verifyApiKey = (req, res, next) => {
     if (!STABLE_DIFFUSION_API_KEY) {
         return res.status(401).json({
             error: 'API Key Missing',
-            details: 'Stable Diffusion API key is not configured'
+            details: 'ModelsLab API key is not configured'
         });
     }
 
@@ -63,10 +64,10 @@ app.post('/api/generate', async (req, res) => {
     }
 
     if (!STABLE_DIFFUSION_API_KEY) {
-      console.error('API Key Missing: STABLE_DIFFUSION_API_KEY is not set in environment');
+      console.error('API Key Missing: MODELSLAB_API_KEY is not set in environment');
       return res.status(401).json({
         error: 'API Key Missing',
-        details: 'Stable Diffusion API key is not configured'
+        details: 'ModelsLab API key is not configured'
       });
     }
 
@@ -77,13 +78,14 @@ app.post('/api/generate', async (req, res) => {
     try {
       const requestBody = {
         prompt: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
-        negative_prompt: "blurry, low quality, distorted, deformed",
+        negative_prompt: "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
         width: 1024,
         height: 1024,
         samples: 1,
         num_inference_steps: 30,
         guidance_scale: 7.5,
-        safety_checker: true
+        safety_checker: true,
+        model: "stable-diffusion-xl-1024-v1-0"
       };
 
       console.log('Request body:', JSON.stringify(requestBody, null, 2));
@@ -123,8 +125,16 @@ app.post('/api/generate', async (req, res) => {
         });
       }
 
-      if (!data.output || !data.output[0]) {
-        console.error('Invalid API Response - No output data:', data);
+      // Check for different possible response formats
+      let imageUrl;
+      if (data.get("status") === "success" && data.get("output") && data["output"][0]) {
+        imageUrl = data["output"][0];
+      } else if (data.get("images") && data["images"][0]) {
+        imageUrl = data["images"][0];
+      } else if (data.get("data") && data["data"].get("url")) {
+        imageUrl = data["data"]["url"];
+      } else {
+        console.error('Invalid API Response - No image data:', data);
         return res.status(502).json({
           error: 'Invalid API response',
           details: 'Response did not contain image data',
@@ -135,7 +145,7 @@ app.post('/api/generate', async (req, res) => {
 
       console.log('Successfully generated image');
       res.json({
-        imageUrl: data.output[0],
+        imageUrl: imageUrl,
         prompt: `${style} style painting`
       });
 
@@ -178,7 +188,7 @@ process.on('SIGTERM', () => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log('API available at http://localhost:' + port);
-  console.log('Stable Diffusion API Key status:', isValidApiKey(STABLE_DIFFUSION_API_KEY) ? 'valid format' : 'invalid format');
+  console.log('ModelsLab API Key status:', isValidApiKey(STABLE_DIFFUSION_API_KEY) ? 'valid format' : 'invalid format');
 }).on('error', (error) => {
   console.error('Server failed to start:', error);
   process.exit(1);
