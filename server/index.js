@@ -61,6 +61,7 @@ app.post('/api/generate', async (req, res) => {
     }
 
     if (!STABLE_DIFFUSION_API_KEY) {
+      console.error('API Key Missing: STABLE_DIFFUSION_API_KEY is not set');
       return res.status(401).json({
         error: 'API Key Missing',
         details: 'Stable Diffusion API key is not configured'
@@ -70,68 +71,77 @@ app.post('/api/generate', async (req, res) => {
     console.log(`Generating image for style: ${style}`);
     console.log('Making request to Stability AI...');
 
-    const response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${STABLE_DIFFUSION_API_KEY}`
-      },
-      body: JSON.stringify({
-        text_prompts: [
-          {
-            text: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
-            weight: 1
-          }
-        ],
-        cfg_scale: 7,
-        height: 1024,
-        width: 1024,
-        samples: 1,
-        steps: 30,
-      })
-    });
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${STABLE_DIFFUSION_API_KEY}`
+        },
+        body: JSON.stringify({
+          text_prompts: [
+            {
+              text: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
+              weight: 1
+            }
+          ],
+          cfg_scale: 7,
+          height: 1024,
+          width: 1024,
+          samples: 1,
+          steps: 30,
+        })
+      });
 
-    const data = await response.json();
-    
-    // Log the full response for debugging
-    console.log('Stability AI Response:', {
-      status: response.status,
-      headers: Object.fromEntries(response.headers),
-      body: data
-    });
+      const data = await response.json();
+      
+      // Log the full response for debugging
+      console.log('Stability AI Response:', {
+        status: response.status,
+        headers: Object.fromEntries(response.headers),
+        body: data
+      });
 
-    if (!response.ok) {
-      // Enhanced error reporting
-      const errorDetails = {
-        statusCode: response.status,
-        apiError: data.message || data.error || response.statusText,
-        requestId: response.headers.get('x-request-id'),
-        timestamp: new Date().toISOString()
-      };
+      if (!response.ok) {
+        // Enhanced error reporting
+        const errorDetails = {
+          statusCode: response.status,
+          apiError: data.message || data.error || response.statusText,
+          requestId: response.headers.get('x-request-id'),
+          timestamp: new Date().toISOString()
+        };
 
-      console.error('Stability AI API Error:', errorDetails);
+        console.error('Stability AI API Error:', errorDetails);
 
-      return res.status(response.status).json({
-        error: 'Stability AI API Error',
-        details: errorDetails
+        return res.status(response.status).json({
+          error: 'Stability AI API Error',
+          details: errorDetails
+        });
+      }
+
+      if (!data.artifacts || !data.artifacts[0] || !data.artifacts[0].base64) {
+        console.error('Invalid API Response:', data);
+        return res.status(502).json({
+          error: 'Invalid API response',
+          details: 'Response did not contain image data',
+          response: data
+        });
+      }
+
+      console.log('Successfully generated image');
+      res.json({
+        imageUrl: `data:image/png;base64,${data.artifacts[0].base64}`,
+        prompt: `${style} style painting`
+      });
+
+    } catch (fetchError) {
+      console.error('Fetch Error:', fetchError);
+      return res.status(500).json({
+        error: 'Network Error',
+        details: fetchError.message
       });
     }
-
-    if (!data.artifacts || !data.artifacts[0] || !data.artifacts[0].base64) {
-      console.error('Invalid API Response:', data);
-      return res.status(502).json({
-        error: 'Invalid API response',
-        details: 'Response did not contain image data',
-        response: data
-      });
-    }
-
-    console.log('Successfully generated image');
-    res.json({
-      imageUrl: `data:image/png;base64,${data.artifacts[0].base64}`,
-      prompt: `${style} style painting`
-    });
 
   } catch (error) {
     console.error('Server Error:', error);
