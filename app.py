@@ -149,17 +149,33 @@ def generate_image():
                 "key": STABLE_DIFFUSION_API_KEY,
                 "prompt": prompt,
                 "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
-                "width": "512",
-                "height": "512",
-                "samples": "1",
-                "num_inference_steps": "20",
+                "width": 512,
+                "height": 512,
+                "samples": 1,
+                "num_inference_steps": 20,
                 "seed": abs(hash(seed)) % (2**32) if seed else None,
                 "guidance_scale": 7.5,
                 "safety_checker": "yes",
                 "webhook": None,
-                "track_id": None
+                "track_id": None,
+                "enhance_prompt": "yes",
+                "multi_lingual": "no",
+                "panorama": "no",
+                "self_attention": "no",
+                "upscale": "no",
+                "embeddings_model": None,
+                "lora_model": None,
+                "tomesd": "yes",
+                "use_karras_sigmas": "yes",
+                "vae": None,
+                "lora_strength": None,
+                "scheduler": "UniPC_Multistep",
+                "clip_skip": 1
             }
         )
+        
+        print(f"🔍 Init response status: {init_response.status_code}")
+        print(f"🔍 Init response: {init_response.text}")
         
         if init_response.status_code != 200:
             raise Exception(f"Failed to initiate generation: {init_response.text}")
@@ -185,6 +201,9 @@ def generate_image():
                     headers={"Content-Type": "application/json"},
                     json={"key": STABLE_DIFFUSION_API_KEY}
                 )
+                
+                print(f"🔍 Status check {attempt + 1}/{max_attempts}")
+                print(f"🔍 Status response: {status_response.text}")
                 
                 if status_response.status_code == 200:
                     status_data = status_response.json()
