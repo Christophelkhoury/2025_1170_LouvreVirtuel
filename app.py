@@ -1,140 +1,170 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
-import requests
 import base64
 from io import BytesIO
 from dotenv import load_dotenv
+import torch
+from diffusers import StableDiffusionPipeline
+from PIL import Image
 
-# Load environment variables from .env
+# Load environment variables from .env file (if any)
 load_dotenv()
-HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-
-if not HUGGINGFACE_API_KEY:
-    print("🚨 Warning: HUGGINGFACE_API_KEY is missing!")
-elif not HUGGINGFACE_API_KEY.startswith("hf_"):
-    print("🚨 Warning: HUGGINGFACE_API_KEY format appears invalid!")
 
 # Initialize Flask App
 app = Flask(__name__)
 
-# Fix CORS for development and production
+# Configure CORS to allow requests from our frontend domains
 CORS(app, resources={r"/api/*": {"origins": ["https://museevirtuel.netlify.app", "http://localhost:5173", "http://localhost:4173"]}})
+
+# Global variable to store our model pipeline
+pipe = None
+
+def initialize_model():
+    """
+    Initialize the Stable Diffusion model.
+    This function is called once when the server starts.
+    Returns the pipeline object that we'll use for generation.
+    """
+    global pipe
+    try:
+        # Use the base Stable Diffusion 1.5 model
+        model_id = "runwayml/stable-diffusion-v1-5"
+        
+        # Initialize the pipeline with float16 precision if CUDA is available
+        if torch.cuda.is_available():
+            pipe = StableDiffusionPipeline.from_pretrained(
+                model_id,
+                torch_dtype=torch.float16,  # Use float16 for better memory efficiency
+                safety_checker=None  # Disable safety checker for better performance
+            )
+            pipe = pipe.to("cuda")  # Move to GPU
+            print("✅ Model loaded on GPU with float16 precision")
+        else:
+            # Fall back to CPU with full precision
+            pipe = StableDiffusionPipeline.from_pretrained(
+                model_id,
+                safety_checker=None
+            )
+            print("⚠️ GPU not available. Model loaded on CPU (this will be slow)")
+        
+        # Enable memory efficient attention if available
+        if hasattr(pipe, 'enable_attention_slicing'):
+            pipe.enable_attention_slicing()
+            print("✅ Attention slicing enabled")
+            
+        return True
+    except Exception as e:
+        print(f"🚨 Error initializing model: {str(e)}")
+        return False
 
 # API Health Check Route
 @app.route("/", methods=["GET"])
 def home():
+    """Simple health check endpoint"""
     return jsonify({"message": "Flask API is running!", "status": "OK"})
 
 @app.route("/api/status", methods=["GET"])
 def status():
-    # Test the API key with a simple model query
-    if HUGGINGFACE_API_KEY:
-        try:
-            test_response = requests.get(
-                "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
-                headers={"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
-            )
-            api_status = "valid" if test_response.status_code == 200 else f"invalid (status: {test_response.status_code})"
-        except Exception as e:
-            api_status = f"error ({str(e)})"
-    else:
-        api_status = "missing"
-
+    """
+    Status endpoint that checks if the model is loaded and ready
+    """
+    global pipe
     return jsonify({
         "status": "healthy",
-        "api_key_status": api_status,
-        "api_key_format": "valid" if HUGGINGFACE_API_KEY and HUGGINGFACE_API_KEY.startswith("hf_") else "invalid",
-        "message": "Using Hugging Face API for AI image generation."
+        "model_loaded": pipe is not None,
+        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "message": "Using local Stable Diffusion for AI image generation"
     })
 
 # AI Image Generation Route
 @app.route("/api/generate", methods=["POST"])
 def generate_image():
-    if not HUGGINGFACE_API_KEY:
-        print("🚨 API Key MISSING in Flask!")
-        return jsonify({"error": "API key missing"}), 401
-
-    if not HUGGINGFACE_API_KEY.startswith("hf_"):
-        print("🚨 Invalid API Key format!")
-        return jsonify({"error": "Invalid API key format"}), 401
-
-    print(f"✅ Using API Key: {HUGGINGFACE_API_KEY[:6]}**********")
-
-    data = request.json
-    style = data.get("style", "")
-    seed = data.get("seed", "")
-    timestamp = data.get("timestamp", 0)
-    random_factor = data.get("randomFactor", 0)
+    """
+    Main endpoint for generating images.
+    Expects a JSON payload with:
+    - style: string describing the art style
+    - seed: string for reproducible generation
+    - timestamp: number for uniqueness
+    - randomFactor: number for variation selection
+    """
+    global pipe
     
-    print(f"🎲 Received randomization parameters: seed={seed}, timestamp={timestamp}, factor={random_factor}")
-    
-    # Create a more detailed prompt with randomization
-    base_prompt = f"A masterpiece painting in the style of {style}, highly detailed, artistic, professional quality"
-    variations = [
-        "with dramatic lighting",
-        "with vibrant colors",
-        "with subtle tones",
-        "with bold composition",
-        "with intricate details",
-        "with atmospheric effects"
-    ]
-    
-    # Use the random factor to select a variation
-    variation_index = random_factor % len(variations)
-    prompt = f"{base_prompt}, {variations[variation_index]}, no frame, no border, no background, pure artwork"
-    
-    print(f"📝 Generated prompt: {prompt}")
+    # Check if model is initialized
+    if pipe is None:
+        print("🚨 Model not initialized!")
+        return jsonify({"error": "Model not initialized"}), 500
 
-    # Using a more reliable model for art generation
-    url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
-    headers = {
-        "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "inputs": prompt,
-        "parameters": {
-            "num_inference_steps": 30,  # Reduced for faster generation
-            "guidance_scale": 7.5,
-            "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
-            "seed": abs(hash(seed)) % (2**32) if seed else None  # Convert string seed to numerical
-        }
-    }
-
-    print("📤 Sending request to Hugging Face API...")
     try:
-        response = requests.post(url, headers=headers, json=payload)
-        print(f"📥 Hugging Face API Response Status: {response.status_code}")
-        print(f"📥 Hugging Face API Response Headers: {dict(response.headers)}")
-        print(f"📥 Hugging Face API Response Body: {response.text[:200]}...")
+        # Extract parameters from request
+        data = request.json
+        style = data.get("style", "")
+        seed = data.get("seed", "")
+        timestamp = data.get("timestamp", 0)
+        random_factor = data.get("randomFactor", 0)
+        
+        print(f"🎲 Received parameters: seed={seed}, timestamp={timestamp}, factor={random_factor}")
+        
+        # Create base prompt describing the artwork
+        base_prompt = f"A masterpiece painting in the style of {style}, highly detailed, artistic, professional quality"
+        
+        # List of possible variations to make each generation unique
+        variations = [
+            "with dramatic lighting",
+            "with vibrant colors",
+            "with subtle tones",
+            "with bold composition",
+            "with intricate details",
+            "with atmospheric effects"
+        ]
+        
+        # Select a variation based on the random factor
+        variation_index = random_factor % len(variations)
+        prompt = f"{base_prompt}, {variations[variation_index]}, no frame, no border, no background, pure artwork"
+        
+        print(f"📝 Generated prompt: {prompt}")
 
-        if response.status_code == 200:
-            # Convert binary image data to base64
-            image_bytes = response.content
-            base64_image = base64.b64encode(image_bytes).decode('utf-8')
-            image_url = f"data:image/jpeg;base64,{base64_image}"
-            
-            return jsonify({
-                "imageUrl": image_url,
-                "prompt": prompt
-            })
-        else:
-            error_message = response.text
-            print(f"🚨 API Error: {error_message}")
-            return jsonify({
-                "error": "AI image generation failed",
-                "details": error_message
-            }), response.status_code
+        # Set the random seed if provided
+        generator = None
+        if seed:
+            generator = torch.Generator("cuda" if torch.cuda.is_available() else "cpu")
+            generator.manual_seed(abs(hash(seed)) % (2**32))
+
+        # Generate the image
+        print("🎨 Generating image...")
+        image = pipe(
+            prompt,
+            num_inference_steps=30,  # Reduced for faster generation
+            guidance_scale=7.5,  # Standard guidance scale
+            negative_prompt="blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
+            generator=generator
+        ).images[0]
+        
+        # Convert the image to base64 for sending to frontend
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        image_url = f"data:image/jpeg;base64,{base64_image}"
+        
+        print("✅ Image generated successfully")
+        return jsonify({
+            "imageUrl": image_url,
+            "prompt": prompt
+        })
 
     except Exception as e:
-        print(f"🚨 Exception: {str(e)}")
+        print(f"🚨 Error generating image: {str(e)}")
         return jsonify({
-            "error": "Server error",
+            "error": "Image generation failed",
             "details": str(e)
         }), 500
 
 if __name__ == "__main__":
-    print("🚀 Using Hugging Face API for AI Image Generation")
-    print(f"🔑 API Key Status: {'Valid format' if HUGGINGFACE_API_KEY and HUGGINGFACE_API_KEY.startswith('hf_') else 'Invalid format'}")
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)
+    print("🚀 Initializing Stable Diffusion model...")
+    if initialize_model():
+        print("✅ Model initialized successfully")
+        # Start the Flask server
+        app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)
+    else:
+        print("🚨 Failed to initialize model")
+        exit(1)

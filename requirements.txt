@@ -1,4 +1,9 @@
 flask==3.0.2
 flask-cors==4.0.0
 python-dotenv==1.0.1
-requests==2.31.0
+torch==2.2.1
+diffusers==0.27.2
+transformers==4.38.2
+accelerate==0.27.2
+pillow==10.2.0
+safetensors==0.4.2
