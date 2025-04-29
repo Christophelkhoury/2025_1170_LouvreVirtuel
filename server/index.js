@@ -11,7 +11,7 @@ app.use(express.json());
 
 // Get API key from environment variables
 const STABLE_DIFFUSION_API_KEY = process.env.STABLE_DIFFUSION_API_KEY;
-const API_ENDPOINT = 'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image';
+const API_ENDPOINT = 'https://api.modelslab.com/v1/stability/text2img';
 
 // Validate API key format
 const isValidApiKey = (key) => {
@@ -69,7 +69,7 @@ app.post('/api/generate', async (req, res) => {
     }
 
     console.log(`Generating image for style: ${style}`);
-    console.log('Making request to Stability AI...');
+    console.log('Making request to ModelsLab API...');
 
     try {
       const response = await fetch(API_ENDPOINT, {
@@ -80,24 +80,21 @@ app.post('/api/generate', async (req, res) => {
           'Authorization': `Bearer ${STABLE_DIFFUSION_API_KEY}`
         },
         body: JSON.stringify({
-          text_prompts: [
-            {
-              text: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
-              weight: 1
-            }
-          ],
-          cfg_scale: 7,
-          height: 1024,
+          prompt: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
+          negative_prompt: "blurry, low quality, distorted, deformed",
           width: 1024,
+          height: 1024,
           samples: 1,
-          steps: 30,
+          num_inference_steps: 30,
+          guidance_scale: 7.5,
+          safety_checker: true
         })
       });
 
       const data = await response.json();
       
       // Log the full response for debugging
-      console.log('Stability AI Response:', {
+      console.log('ModelsLab API Response:', {
         status: response.status,
         headers: Object.fromEntries(response.headers),
         body: data
@@ -112,15 +109,15 @@ app.post('/api/generate', async (req, res) => {
           timestamp: new Date().toISOString()
         };
 
-        console.error('Stability AI API Error:', errorDetails);
+        console.error('ModelsLab API Error:', errorDetails);
 
         return res.status(response.status).json({
-          error: 'Stability AI API Error',
+          error: 'ModelsLab API Error',
           details: errorDetails
         });
       }
 
-      if (!data.artifacts || !data.artifacts[0] || !data.artifacts[0].base64) {
+      if (!data.output || !data.output[0]) {
         console.error('Invalid API Response:', data);
         return res.status(502).json({
           error: 'Invalid API response',
@@ -131,7 +128,7 @@ app.post('/api/generate', async (req, res) => {
 
       console.log('Successfully generated image');
       res.json({
-        imageUrl: `data:image/png;base64,${data.artifacts[0].base64}`,
+        imageUrl: data.output[0],
         prompt: `${style} style painting`
       });
 
