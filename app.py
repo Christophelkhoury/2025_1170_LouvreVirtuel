@@ -6,14 +6,14 @@ import requests
 import time
 
 # Get API key directly from environment variables
-STABLE_DIFFUSION_API_KEY = os.environ.get("STABLE_DIFFUSION_API_KEY")
+STABLE_DIFFUSION_API_KEY = os.environ.get("STABILITY_API_KEY")
 
 # Debug logging for environment variables
 print("🔍 Environment Variables Check:")
-print(f"STABLE_DIFFUSION_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}")
+print(f"STABILITY_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}")
 if STABLE_DIFFUSION_API_KEY:
-    print(f"STABLE_DIFFUSION_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
-    print(f"STABLE_DIFFUSION_API_KEY first 4 chars: {STABLE_DIFFUSION_API_KEY[:4]}...")
+    print(f"STABILITY_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
+    print(f"STABILITY_API_KEY first 4 chars: {STABLE_DIFFUSION_API_KEY[:4]}...")
 
 # Validate API token format
 def is_valid_token(token):
@@ -21,10 +21,10 @@ def is_valid_token(token):
     return token and isinstance(token, str) and len(token) > 20
 
 if not STABLE_DIFFUSION_API_KEY:
-    print("🚨 Warning: STABLE_DIFFUSION_API_KEY is missing!")
-    print("Please set STABLE_DIFFUSION_API_KEY in Render environment variables")
+    print("🚨 Warning: STABILITY_API_KEY is missing!")
+    print("Please set STABILITY_API_KEY in Render environment variables")
 elif not is_valid_token(STABLE_DIFFUSION_API_KEY):
-    print("🚨 Warning: STABLE_DIFFUSION_API_KEY format appears invalid!")
+    print("🚨 Warning: STABILITY_API_KEY format appears invalid!")
     print(f"Token length: {len(STABLE_DIFFUSION_API_KEY)}")
 
 # Initialize Flask App
@@ -48,7 +48,7 @@ def status():
         return jsonify({
             "status": "error",
             "message": "API key missing",
-            "details": "Please set STABLE_DIFFUSION_API_KEY in Render environment variables"
+            "details": "Please set STABILITY_API_KEY in Render environment variables"
         }), 500
 
     if not is_valid_token(STABLE_DIFFUSION_API_KEY):
