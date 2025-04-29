@@ -55,7 +55,8 @@ def status():
         # Test the API key with a simple request
         response = requests.get(
             "https://stablediffusionapi.com/api/v3/user/balance",
-            headers={"Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"}
+            headers={"Content-Type": "application/json"},
+            json={"key": STABLE_DIFFUSION_API_KEY}
         )
         
         if response.status_code == 200:
@@ -132,11 +133,9 @@ def generate_image():
         # First request to initiate generation
         init_response = requests.post(
             "https://stablediffusionapi.com/api/v3/text2img",
-            headers={
-                "Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}",
-                "Content-Type": "application/json"
-            },
+            headers={"Content-Type": "application/json"},
             json={
+                "key": STABLE_DIFFUSION_API_KEY,
                 "prompt": prompt,
                 "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
                 "width": "512",
@@ -170,9 +169,10 @@ def generate_image():
             for attempt in range(max_attempts):
                 time.sleep(2)  # Wait 2 seconds between checks
                 
-                status_response = requests.get(
+                status_response = requests.post(
                     f"https://stablediffusionapi.com/api/v3/text2img/{generation_id}",
-                    headers={"Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"}
+                    headers={"Content-Type": "application/json"},
+                    json={"key": STABLE_DIFFUSION_API_KEY}
                 )
                 
                 if status_response.status_code == 200:
