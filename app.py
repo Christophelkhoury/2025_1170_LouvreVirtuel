@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 import requests
 import base64
+from io import BytesIO
 from dotenv import load_dotenv
 
 # Load environment variables from .env
@@ -31,7 +32,7 @@ def status():
     if HUGGINGFACE_API_KEY:
         try:
             test_response = requests.get(
-                "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4",
+                "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
                 headers={"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
             )
             api_status = "valid" if test_response.status_code == 200 else f"invalid (status: {test_response.status_code})"
@@ -86,7 +87,7 @@ def generate_image():
     print(f"📝 Generated prompt: {prompt}")
 
     # Using a more reliable model for art generation
-    url = "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4"
+    url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
     headers = {
         "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
         "Content-Type": "application/json"
