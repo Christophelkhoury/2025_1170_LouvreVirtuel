@@ -6,26 +6,26 @@ import requests
 import time
 
 # Get API key directly from environment variables
-STABLE_DIFFUSION_API_KEY = os.environ.get("MODELSLAB_API_KEY")
+STABLE_DIFFUSION_API_KEY = os.environ.get("STABILITY_API_KEY")
 
 # Debug logging for environment variables
 print("🔍 Environment Variables Check:")
-print(f"MODELSLAB_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}")
+print(f"STABILITY_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}")
 if STABLE_DIFFUSION_API_KEY:
-    print(f"MODELSLAB_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
+    print(f"STABILITY_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
 
 # Validate API token format
 def is_valid_token(token):
     """Check if the token has the correct format"""
     return (token and 
             isinstance(token, str) and 
-            len(token) > 20)  # ModelsLab tokens are longer than 20 chars
+            len(token) > 20)  # Stability AI tokens are longer than 20 chars
 
 if not STABLE_DIFFUSION_API_KEY:
-    print("🚨 Warning: MODELSLAB_API_KEY is missing!")
-    print("Please set MODELSLAB_API_KEY in Render environment variables")
+    print("🚨 Warning: STABILITY_API_KEY is missing!")
+    print("Please set STABILITY_API_KEY in Render environment variables")
 elif not is_valid_token(STABLE_DIFFUSION_API_KEY):
-    print("🚨 Warning: MODELSLAB_API_KEY format appears invalid!")
+    print("🚨 Warning: STABILITY_API_KEY format appears invalid!")
     print(f"Token length: {len(STABLE_DIFFUSION_API_KEY)}")
 
 # Initialize Flask App
@@ -49,7 +49,7 @@ def status():
         return jsonify({
             "status": "error",
             "message": "API key missing",
-            "details": "Please set MODELSLAB_API_KEY in Render environment variables"
+            "details": "Please set STABILITY_API_KEY in Render environment variables"
         }), 500
 
     if not is_valid_token(STABLE_DIFFUSION_API_KEY):
@@ -61,14 +61,14 @@ def status():
     return jsonify({
         "status": "healthy",
         "api_status": "valid",
-        "message": "Using ModelsLab API for AI image generation"
+        "message": "Using Stability AI API for image generation"
     })
 
 # AI Image Generation Route
 @app.route("/api/generate", methods=["POST"])
 def generate_image():
     """
-    Main endpoint for generating images using ModelsLab API.
+    Main endpoint for generating images using Stability AI API.
     Expects a JSON payload with:
     - style: string describing the art style
     - seed: string for reproducible generation
@@ -112,99 +112,56 @@ def generate_image():
         
         print(f"📝 Generated prompt: {prompt}")
 
-        # Generate image using ModelsLab API
+        # Generate image using Stability AI API
         print("🎨 Generating image...")
         start_time = time.time()
         
-        # Make request to ModelsLab API
-        max_retries = 3
-        retry_delay = 2  # seconds
+        # Make request to Stability AI API
+        response = requests.post(
+            "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"
+            },
+            json={
+                "text_prompts": [
+                    {
+                        "text": prompt,
+                        "weight": 1
+                    }
+                ],
+                "cfg_scale": 7,
+                "height": 1024,
+                "width": 1024,
+                "samples": 1,
+                "steps": 30,
+                "seed": abs(hash(seed)) % (2**32) if seed else None
+            }
+        )
         
-        for attempt in range(max_retries):
-            try:
-                print(f"🎨 Attempt {attempt + 1}/{max_retries} to generate image...")
-                response = requests.post(
-                    "https://modelslab.com/api/v1/stability/text2img",
-                    headers={
-                        "Content-Type": "application/json",
-                        "Accept": "application/json",
-                        "Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"
-                    },
-                    json={
-                        "prompt": prompt,
-                        "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
-                        "width": 1024,
-                        "height": 1024,
-                        "samples": 1,
-                        "num_inference_steps": 30,
-                        "seed": abs(hash(seed)) % (2**32) if seed else None,
-                        "guidance_scale": 7.5,
-                        "safety_checker": True,
-                        "model": "stable-diffusion-xl-1024-v1-0"
-                    },
-                    timeout=30  # Add timeout to prevent hanging
-                )
-                
-                print(f"🔍 API response status: {response.status_code}")
-                print(f"🔍 API response: {response.text}")
-                
-                if response.status_code == 429:  # Rate limit
-                    retry_after = int(response.headers.get('Retry-After', retry_delay))
-                    print(f"⚠️ Rate limited. Waiting {retry_after} seconds...")
-                    time.sleep(retry_after)
-                    continue
-                
-                if response.status_code != 200:
-                    data = response.json()
-                    if data.get("status") == "error" and "Server Error" in data.get("message", ""):
-                        if attempt < max_retries - 1:
-                            print(f"⚠️ Server error, retrying in {retry_delay} seconds...")
-                            time.sleep(retry_delay)
-                            continue
-                    raise Exception(f"Failed to generate image: {response.text}")
+        print(f"🔍 API response status: {response.status_code}")
+        print(f"🔍 API response: {response.text}")
+        
+        if response.status_code != 200:
+            raise Exception(f"Failed to generate image: {response.text}")
 
-                data = response.json()
-                
-                # Check for different possible response formats
-                if data.get("status") == "success" and data.get("output") and data["output"][0]:
-                    image_url = data["output"][0]
-                elif data.get("images") and data["images"][0]:
-                    image_url = data["images"][0]
-                elif data.get("data") and data["data"].get("url"):
-                    image_url = data["data"]["url"]
-                else:
-                    print("🔍 Full response data:", data)
-                    if attempt < max_retries - 1:
-                        print(f"⚠️ No image data, retrying in {retry_delay} seconds...")
-                        time.sleep(retry_delay)
-                        continue
-                    raise Exception("No image data in response. Response format: " + str(data))
+        data = response.json()
+        
+        if not data.get("artifacts") or not data["artifacts"][0] or not data["artifacts"][0].get("base64"):
+            print("🔍 Full response data:", data)
+            raise Exception("No image data in response. Response format: " + str(data))
 
-                generation_time = time.time() - start_time
-                print(f"⏱️ Generation took {generation_time:.2f} seconds")
-                    
-                print("✅ Image generated successfully")
-                return jsonify({
-                    "imageUrl": image_url,
-                    "prompt": prompt,
-                    "generationTime": f"{generation_time:.2f}s"
-                })
-
-            except requests.exceptions.Timeout:
-                print(f"⚠️ Request timed out, attempt {attempt + 1}/{max_retries}")
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)
-                    continue
-                raise Exception("Request timed out after multiple attempts")
+        image_url = f"data:image/png;base64,{data['artifacts'][0]['base64']}"
+        generation_time = time.time() - start_time
+        print(f"⏱️ Generation took {generation_time:.2f} seconds")
             
-            except requests.exceptions.RequestException as e:
-                print(f"⚠️ Request failed: {str(e)}, attempt {attempt + 1}/{max_retries}")
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)
-                    continue
-                raise Exception(f"Request failed after multiple attempts: {str(e)}")
-
-        raise Exception("Failed to generate image after multiple attempts")
+        print("✅ Image generated successfully")
+        return jsonify({
+            "imageUrl": image_url,
+            "prompt": prompt,
+            "generationTime": f"{generation_time:.2f}s"
+        })
 
     except Exception as e:
         print(f"🚨 Error generating image: {str(e)}")
@@ -214,6 +171,6 @@ def generate_image():
         }), 500
 
 if __name__ == "__main__":
-    print("🚀 Using ModelsLab API for AI Image Generation")
+    print("🚀 Using Stability AI API for AI Image Generation")
     print(f"🔑 API Key Status: {'Valid' if STABLE_DIFFUSION_API_KEY and is_valid_token(STABLE_DIFFUSION_API_KEY) else 'Invalid'}")
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)

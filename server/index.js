@@ -10,8 +10,8 @@ app.use(cors());
 app.use(express.json());
 
 // Get API key from environment variables
-const STABLE_DIFFUSION_API_KEY = process.env.MODELSLAB_API_KEY;
-const API_ENDPOINT = 'https://modelslab.com/api/v1/stability/text2img';
+const STABLE_DIFFUSION_API_KEY = process.env.STABILITY_API_KEY;
+const API_ENDPOINT = 'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image';
 
 // Validate API key format
 const isValidApiKey = (key) => {
@@ -24,7 +24,7 @@ app.get('/api/status', (req, res) => {
     res.json({
         status: 'healthy',
         apiKeyStatus,
-        message: 'Using ModelsLab API for AI image generation'
+        message: 'Using Stability AI API for image generation'
     });
 });
 
@@ -33,7 +33,7 @@ const verifyApiKey = (req, res, next) => {
     if (!STABLE_DIFFUSION_API_KEY) {
         return res.status(401).json({
             error: 'API Key Missing',
-            details: 'ModelsLab API key is not configured'
+            details: 'Stability AI API key is not configured'
         });
     }
 
@@ -64,28 +64,31 @@ app.post('/api/generate', async (req, res) => {
     }
 
     if (!STABLE_DIFFUSION_API_KEY) {
-      console.error('API Key Missing: MODELSLAB_API_KEY is not set in environment');
+      console.error('API Key Missing: STABILITY_API_KEY is not set in environment');
       return res.status(401).json({
         error: 'API Key Missing',
-        details: 'ModelsLab API key is not configured'
+        details: 'Stability AI API key is not configured'
       });
     }
 
     console.log('API Key present:', STABLE_DIFFUSION_API_KEY ? 'Yes' : 'No');
     console.log(`Generating image for style: ${style}`);
-    console.log('Making request to ModelsLab API:', API_ENDPOINT);
+    console.log('Making request to Stability AI API:', API_ENDPOINT);
 
     try {
       const requestBody = {
-        prompt: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
-        negative_prompt: "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
-        width: 1024,
+        text_prompts: [
+          {
+            text: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
+            weight: 1
+          }
+        ],
+        cfg_scale: 7,
         height: 1024,
+        width: 1024,
         samples: 1,
-        num_inference_steps: 30,
-        guidance_scale: 7.5,
-        safety_checker: true,
-        model: "stable-diffusion-xl-1024-v1-0"
+        steps: 30,
+        seed: seed ? abs(hash(seed)) % (2**32) : null
       };
 
       console.log('Request body:', JSON.stringify(requestBody, null, 2));
@@ -105,7 +108,7 @@ app.post('/api/generate', async (req, res) => {
 
       const data = await response.json();
       
-      console.log('ModelsLab API Response data:', JSON.stringify(data, null, 2));
+      console.log('Stability AI Response data:', JSON.stringify(data, null, 2));
 
       if (!response.ok) {
         const errorDetails = {
@@ -117,23 +120,15 @@ app.post('/api/generate', async (req, res) => {
           requestBody: requestBody
         };
 
-        console.error('ModelsLab API Error:', errorDetails);
+        console.error('Stability AI API Error:', errorDetails);
 
         return res.status(response.status).json({
-          error: 'ModelsLab API Error',
+          error: 'Stability AI API Error',
           details: errorDetails
         });
       }
 
-      // Check for different possible response formats
-      let imageUrl;
-      if (data.get("status") === "success" && data.get("output") && data["output"][0]) {
-        imageUrl = data["output"][0];
-      } else if (data.get("images") && data["images"][0]) {
-        imageUrl = data["images"][0];
-      } else if (data.get("data") && data["data"].get("url")) {
-        imageUrl = data["data"]["url"];
-      } else {
+      if (!data.artifacts || !data.artifacts[0] || !data.artifacts[0].base64) {
         console.error('Invalid API Response - No image data:', data);
         return res.status(502).json({
           error: 'Invalid API response',
@@ -145,7 +140,7 @@ app.post('/api/generate', async (req, res) => {
 
       console.log('Successfully generated image');
       res.json({
-        imageUrl: imageUrl,
+        imageUrl: `data:image/png;base64,${data.artifacts[0].base64}`,
         prompt: `${style} style painting`
       });
 
@@ -188,7 +183,7 @@ process.on('SIGTERM', () => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log('API available at http://localhost:' + port);
-  console.log('ModelsLab API Key status:', isValidApiKey(STABLE_DIFFUSION_API_KEY) ? 'valid format' : 'invalid format');
+  console.log('Stability AI API Key status:', isValidApiKey(STABLE_DIFFUSION_API_KEY) ? 'valid format' : 'invalid format');
 }).on('error', (error) => {
   console.error('Server failed to start:', error);
   process.exit(1);
