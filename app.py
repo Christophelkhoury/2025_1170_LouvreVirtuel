@@ -118,7 +118,7 @@ def generate_image():
         
         # Make request to ModelsLab API
         response = requests.post(
-            "https://api.modelslab.com/v1/stability/text2img",
+            "https://modelslab.com/api/v1/stability/text2img",
             headers={
                 "Content-Type": "application/json",
                 "Accept": "application/json",
