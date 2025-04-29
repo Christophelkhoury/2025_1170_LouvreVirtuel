@@ -2,84 +2,32 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import base64
-from io import BytesIO
+import requests
+import time
 from dotenv import load_dotenv
-import sys
+import replicate
 
-# Load environment variables from .env file (if any)
+# Load environment variables from .env file
 load_dotenv()
+REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
+
+# Validate API token format
+def is_valid_token(token):
+    """Check if the token has the correct format"""
+    return token and isinstance(token, str) and len(token) > 20
+
+if not REPLICATE_API_TOKEN:
+    print("🚨 Warning: REPLICATE_API_TOKEN is missing!")
+    print("Please get your API token from https://replicate.com/account/api-tokens")
+elif not is_valid_token(REPLICATE_API_TOKEN):
+    print("🚨 Warning: REPLICATE_API_TOKEN format appears invalid!")
+    print("Token should be a long string starting with 'r8_'")
 
 # Initialize Flask App
 app = Flask(__name__)
 
 # Configure CORS to allow requests from our frontend domains
 CORS(app, resources={r"/api/*": {"origins": ["https://museevirtuel.netlify.app", "http://localhost:5173", "http://localhost:4173"]}})
-
-# Global variable to store our model pipeline
-pipe = None
-
-def check_dependencies():
-    """
-    Check if all required dependencies are available and compatible
-    """
-    try:
-        import torch
-        import numpy as np
-        from diffusers import StableDiffusionPipeline
-        from PIL import Image
-        return True
-    except ImportError as e:
-        print(f"🚨 Missing dependency: {str(e)}")
-        return False
-    except Exception as e:
-        print(f"🚨 Error checking dependencies: {str(e)}")
-        return False
-
-def initialize_model():
-    """
-    Initialize the Stable Diffusion model.
-    This function is called once when the server starts.
-    Returns the pipeline object that we'll use for generation.
-    """
-    global pipe
-    try:
-        # First check dependencies
-        if not check_dependencies():
-            print("🚨 Dependencies check failed")
-            return False
-
-        import torch
-        from diffusers import StableDiffusionPipeline
-        
-        # Use the base Stable Diffusion 1.5 model
-        model_id = "runwayml/stable-diffusion-v1-5"
-        
-        # Initialize the pipeline with float16 precision if CUDA is available
-        if torch.cuda.is_available():
-            pipe = StableDiffusionPipeline.from_pretrained(
-                model_id,
-                torch_dtype=torch.float16,  # Use float16 for better memory efficiency
-                safety_checker=None  # Disable safety checker for better performance
-            )
-            pipe = pipe.to("cuda")  # Move to GPU
-            print("✅ Model loaded on GPU with float16 precision")
-        else:
-            # Fall back to CPU with full precision
-            pipe = StableDiffusionPipeline.from_pretrained(
-                model_id,
-                safety_checker=None
-            )
-            print("⚠️ GPU not available. Model loaded on CPU (this will be slow)")
-        
-        # Enable memory efficient attention if available
-        if hasattr(pipe, 'enable_attention_slicing'):
-            pipe.enable_attention_slicing()
-            print("✅ Attention slicing enabled")
-            
-        return True
-    except Exception as e:
-        print(f"🚨 Error initializing model: {str(e)}")
-        return False
 
 # API Health Check Route
 @app.route("/", methods=["GET"])
@@ -90,41 +38,76 @@ def home():
 @app.route("/api/status", methods=["GET"])
 def status():
     """
-    Status endpoint that checks if the model is loaded and ready
+    Status endpoint that checks if the API token is valid and has remaining credits
     """
-    global pipe
-    try:
-        import torch
-        return jsonify({
-            "status": "healthy",
-            "model_loaded": pipe is not None,
-            "device": "cuda" if torch.cuda.is_available() else "cpu",
-            "message": "Using local Stable Diffusion for AI image generation"
-        })
-    except Exception as e:
+    if not REPLICATE_API_TOKEN:
         return jsonify({
             "status": "error",
-            "error": str(e),
-            "message": "Error checking status"
+            "message": "API token missing",
+            "details": "Please set REPLICATE_API_TOKEN in your environment variables"
         }), 500
+
+    if not is_valid_token(REPLICATE_API_TOKEN):
+        return jsonify({
+            "status": "error",
+            "message": "Invalid API token format",
+            "details": "Token should be a long string starting with 'r8_'"
+        }), 500
+
+    try:
+        # Test the API token with a simple model query
+        response = requests.get(
+            "https://api.replicate.com/v1/models",
+            headers={"Authorization": f"Token {REPLICATE_API_TOKEN}"}
+        )
+        
+        if response.status_code == 200:
+            # Check remaining credits
+            credits_response = requests.get(
+                "https://api.replicate.com/v1/credits",
+                headers={"Authorization": f"Token {REPLICATE_API_TOKEN}"}
+            )
+            
+            if credits_response.status_code == 200:
+                credits_data = credits_response.json()
+                remaining_seconds = credits_data.get("remaining_seconds", 0)
+                api_status = "valid"
+            else:
+                remaining_seconds = None
+                api_status = f"valid but can't check credits (status: {credits_response.status_code})"
+        else:
+            api_status = f"invalid (status: {response.status_code})"
+            remaining_seconds = None
+
+    except Exception as e:
+        api_status = f"error ({str(e)})"
+        remaining_seconds = None
+
+    return jsonify({
+        "status": "healthy",
+        "api_status": api_status,
+        "remaining_seconds": remaining_seconds,
+        "message": "Using Replicate API for AI image generation"
+    })
 
 # AI Image Generation Route
 @app.route("/api/generate", methods=["POST"])
 def generate_image():
     """
-    Main endpoint for generating images.
+    Main endpoint for generating images using Replicate API.
     Expects a JSON payload with:
     - style: string describing the art style
     - seed: string for reproducible generation
     - timestamp: number for uniqueness
     - randomFactor: number for variation selection
     """
-    global pipe
-    
-    # Check if model is initialized
-    if pipe is None:
-        print("🚨 Model not initialized!")
-        return jsonify({"error": "Model not initialized"}), 500
+    if not REPLICATE_API_TOKEN:
+        print("🚨 API Token MISSING!")
+        return jsonify({"error": "API token missing"}), 401
+
+    if not is_valid_token(REPLICATE_API_TOKEN):
+        print("🚨 Invalid API Token format!")
+        return jsonify({"error": "Invalid API token format"}), 401
 
     try:
         # Extract parameters from request
@@ -155,34 +138,41 @@ def generate_image():
         
         print(f"📝 Generated prompt: {prompt}")
 
-        # Set the random seed if provided
-        generator = None
-        if seed:
-            import torch
-            generator = torch.Generator("cuda" if torch.cuda.is_available() else "cpu")
-            generator.manual_seed(abs(hash(seed)) % (2**32))
-
-        # Generate the image
+        # Generate image using Replicate API
         print("🎨 Generating image...")
-        image = pipe(
-            prompt,
-            num_inference_steps=30,  # Reduced for faster generation
-            guidance_scale=7.5,  # Standard guidance scale
-            negative_prompt="blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
-            generator=generator
-        ).images[0]
+        start_time = time.time()
         
-        # Convert the image to base64 for sending to frontend
-        buffered = BytesIO()
-        image.save(buffered, format="JPEG")
-        base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
-        image_url = f"data:image/jpeg;base64,{base64_image}"
+        output = replicate.run(
+            "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+            input={
+                "prompt": prompt,
+                "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
+                "num_inference_steps": 30,
+                "guidance_scale": 7.5,
+                "seed": abs(hash(seed)) % (2**32) if seed else None
+            }
+        )
+
+        generation_time = time.time() - start_time
+        print(f"⏱️ Generation took {generation_time:.2f} seconds")
+
+        # Get the image URL from the output
+        image_url = output[0]
         
-        print("✅ Image generated successfully")
-        return jsonify({
-            "imageUrl": image_url,
-            "prompt": prompt
-        })
+        # Download the image and convert to base64
+        response = requests.get(image_url)
+        if response.status_code == 200:
+            base64_image = base64.b64encode(response.content).decode('utf-8')
+            image_url = f"data:image/jpeg;base64,{base64_image}"
+            
+            print("✅ Image generated successfully")
+            return jsonify({
+                "imageUrl": image_url,
+                "prompt": prompt,
+                "generationTime": f"{generation_time:.2f}s"
+            })
+        else:
+            raise Exception(f"Failed to download image: {response.status_code}")
 
     except Exception as e:
         print(f"🚨 Error generating image: {str(e)}")
@@ -192,11 +182,6 @@ def generate_image():
         }), 500
 
 if __name__ == "__main__":
-    print("🚀 Initializing Stable Diffusion model...")
-    if initialize_model():
-        print("✅ Model initialized successfully")
-        # Start the Flask server
-        app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)
-    else:
-        print("🚨 Failed to initialize model")
-        sys.exit(1)
+    print("🚀 Using Replicate API for AI Image Generation")
+    print(f"🔑 API Token Status: {'Valid' if REPLICATE_API_TOKEN and is_valid_token(REPLICATE_API_TOKEN) else 'Invalid'}")
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)
