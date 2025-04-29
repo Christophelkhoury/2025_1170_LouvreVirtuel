@@ -146,10 +146,17 @@ def generate_image():
 
         data = response.json()
         
-        if not data.get("output") or not data["output"][0]:
-            raise Exception("No image data in response")
+        # Check for different possible response formats
+        if data.get("status") == "success" and data.get("output") and data["output"][0]:
+            image_url = data["output"][0]
+        elif data.get("images") and data["images"][0]:
+            image_url = data["images"][0]
+        elif data.get("data") and data["data"].get("url"):
+            image_url = data["data"]["url"]
+        else:
+            print("🔍 Full response data:", data)
+            raise Exception("No image data in response. Response format: " + str(data))
 
-        image_url = data["output"][0]
         generation_time = time.time() - start_time
         print(f"⏱️ Generation took {generation_time:.2f} seconds")
             
