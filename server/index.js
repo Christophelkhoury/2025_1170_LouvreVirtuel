@@ -1,12 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 
-dotenv.config();
-
 const app = express();
-const port = process.env.PORT || 10000;
+const port = 10000;
 
 // Enable CORS
 app.use(cors());
@@ -14,6 +11,7 @@ app.use(express.json());
 
 // Get API key from environment variables
 const STABLE_DIFFUSION_API_KEY = process.env.STABLE_DIFFUSION_API_KEY;
+const API_ENDPOINT = 'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image';
 
 // Validate API key format
 const isValidApiKey = (key) => {
@@ -62,6 +60,13 @@ app.post('/api/generate', async (req, res) => {
       });
     }
 
+    if (!STABLE_DIFFUSION_API_KEY) {
+      return res.status(401).json({
+        error: 'API Key Missing',
+        details: 'Stable Diffusion API key is not configured'
+      });
+    }
+
     console.log(`Generating image for style: ${style}`);
     console.log('Making request to Stability AI...');
 
@@ -73,8 +78,17 @@ app.post('/api/generate', async (req, res) => {
         'Authorization': `Bearer ${STABLE_DIFFUSION_API_KEY}`
       },
       body: JSON.stringify({
-        prompt: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
-        output_format: 'jpeg'
+        text_prompts: [
+          {
+            text: `Create a ${style} style painting. The image should be highly detailed and artistic, following the characteristics of ${style} art movement.`,
+            weight: 1
+          }
+        ],
+        cfg_scale: 7,
+        height: 1024,
+        width: 1024,
+        samples: 1,
+        steps: 30,
       })
     });
 
@@ -104,18 +118,18 @@ app.post('/api/generate', async (req, res) => {
       });
     }
 
-    if (!data.image_url) {
+    if (!data.artifacts || !data.artifacts[0] || !data.artifacts[0].base64) {
       console.error('Invalid API Response:', data);
       return res.status(502).json({
         error: 'Invalid API response',
-        details: 'Response did not contain image URL',
+        details: 'Response did not contain image data',
         response: data
       });
     }
 
     console.log('Successfully generated image');
     res.json({
-      imageUrl: data.image_url,
+      imageUrl: `data:image/png;base64,${data.artifacts[0].base64}`,
       prompt: `${style} style painting`
     });
 
@@ -123,8 +137,7 @@ app.post('/api/generate', async (req, res) => {
     console.error('Server Error:', error);
     res.status(500).json({
       error: 'Server error',
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      details: error.message
     });
   }
 });
