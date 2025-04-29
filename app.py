@@ -14,11 +14,15 @@ print(f"STABILITY_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}"
 if STABLE_DIFFUSION_API_KEY:
     print(f"STABILITY_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
     print(f"STABILITY_API_KEY first 4 chars: {STABLE_DIFFUSION_API_KEY[:4]}...")
+    print(f"STABILITY_API_KEY prefix: {STABLE_DIFFUSION_API_KEY[:6]}...")
 
 # Validate API token format
 def is_valid_token(token):
     """Check if the token has the correct format"""
-    return token and isinstance(token, str) and len(token) > 20
+    return (token and 
+            isinstance(token, str) and 
+            len(token) == 60 and 
+            token.startswith("LPOkUh"))
 
 if not STABLE_DIFFUSION_API_KEY:
     print("🚨 Warning: STABILITY_API_KEY is missing!")
@@ -26,6 +30,8 @@ if not STABLE_DIFFUSION_API_KEY:
 elif not is_valid_token(STABLE_DIFFUSION_API_KEY):
     print("🚨 Warning: STABILITY_API_KEY format appears invalid!")
     print(f"Token length: {len(STABLE_DIFFUSION_API_KEY)}")
+    print(f"Token prefix: {STABLE_DIFFUSION_API_KEY[:6] if STABLE_DIFFUSION_API_KEY else 'None'}")
+    print("Expected format: 60 characters starting with 'LPOkUh'")
 
 # Initialize Flask App
 app = Flask(__name__)
