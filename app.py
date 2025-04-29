@@ -4,11 +4,9 @@ import os
 import base64
 import requests
 import time
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-STABLE_DIFFUSION_API_KEY = os.getenv("STABLE_DIFFUSION_API_KEY")
+# Get API key directly from environment variables
+STABLE_DIFFUSION_API_KEY = os.environ.get("STABLE_DIFFUSION_API_KEY")
 
 # Debug logging for environment variables
 print("🔍 Environment Variables Check:")
@@ -16,7 +14,6 @@ print(f"STABLE_DIFFUSION_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else
 if STABLE_DIFFUSION_API_KEY:
     print(f"STABLE_DIFFUSION_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
     print(f"STABLE_DIFFUSION_API_KEY first 4 chars: {STABLE_DIFFUSION_API_KEY[:4]}...")
-print("All environment variables:", os.environ.keys())
 
 # Validate API token format
 def is_valid_token(token):
@@ -25,7 +22,7 @@ def is_valid_token(token):
 
 if not STABLE_DIFFUSION_API_KEY:
     print("🚨 Warning: STABLE_DIFFUSION_API_KEY is missing!")
-    print("Please get your API key from https://stablediffusionapi.com")
+    print("Please set STABLE_DIFFUSION_API_KEY in Render environment variables")
 elif not is_valid_token(STABLE_DIFFUSION_API_KEY):
     print("🚨 Warning: STABLE_DIFFUSION_API_KEY format appears invalid!")
     print(f"Token length: {len(STABLE_DIFFUSION_API_KEY)}")
@@ -51,7 +48,7 @@ def status():
         return jsonify({
             "status": "error",
             "message": "API key missing",
-            "details": "Please set STABLE_DIFFUSION_API_KEY in your environment variables"
+            "details": "Please set STABLE_DIFFUSION_API_KEY in Render environment variables"
         }), 500
 
     if not is_valid_token(STABLE_DIFFUSION_API_KEY):
