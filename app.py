@@ -6,32 +6,27 @@ import requests
 import time
 
 # Get API key directly from environment variables
-STABLE_DIFFUSION_API_KEY = os.environ.get("STABILITY_API_KEY")
+STABLE_DIFFUSION_API_KEY = os.environ.get("MODELSLAB_API_KEY")
 
 # Debug logging for environment variables
 print("🔍 Environment Variables Check:")
-print(f"STABILITY_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}")
+print(f"MODELSLAB_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}")
 if STABLE_DIFFUSION_API_KEY:
-    print(f"STABILITY_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
-    print(f"STABILITY_API_KEY first 4 chars: {STABLE_DIFFUSION_API_KEY[:4]}...")
-    print(f"STABILITY_API_KEY prefix: {STABLE_DIFFUSION_API_KEY[:6]}...")
+    print(f"MODELSLAB_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
 
 # Validate API token format
 def is_valid_token(token):
     """Check if the token has the correct format"""
     return (token and 
             isinstance(token, str) and 
-            len(token) == 60 and 
-            token.startswith("LPOkUh"))
+            len(token) > 20)  # ModelsLab tokens are longer than 20 chars
 
 if not STABLE_DIFFUSION_API_KEY:
-    print("🚨 Warning: STABILITY_API_KEY is missing!")
-    print("Please set STABILITY_API_KEY in Render environment variables")
+    print("🚨 Warning: MODELSLAB_API_KEY is missing!")
+    print("Please set MODELSLAB_API_KEY in Render environment variables")
 elif not is_valid_token(STABLE_DIFFUSION_API_KEY):
-    print("🚨 Warning: STABILITY_API_KEY format appears invalid!")
+    print("🚨 Warning: MODELSLAB_API_KEY format appears invalid!")
     print(f"Token length: {len(STABLE_DIFFUSION_API_KEY)}")
-    print(f"Token prefix: {STABLE_DIFFUSION_API_KEY[:6] if STABLE_DIFFUSION_API_KEY else 'None'}")
-    print("Expected format: 60 characters starting with 'LPOkUh'")
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -54,7 +49,7 @@ def status():
         return jsonify({
             "status": "error",
             "message": "API key missing",
-            "details": "Please set STABILITY_API_KEY in Render environment variables"
+            "details": "Please set MODELSLAB_API_KEY in Render environment variables"
         }), 500
 
     if not is_valid_token(STABLE_DIFFUSION_API_KEY):
@@ -63,43 +58,17 @@ def status():
             "message": "Invalid API key format"
         }), 500
 
-    try:
-        # Test the API key with a simple request
-        print("🔍 Testing API key with balance check...")
-        response = requests.get(
-            "https://stablediffusionapi.com/api/v3/user/balance",
-            headers={"Content-Type": "application/json"},
-            json={"key": STABLE_DIFFUSION_API_KEY}
-        )
-        
-        print(f"🔍 Balance check response status: {response.status_code}")
-        print(f"🔍 Balance check response: {response.text}")
-        
-        if response.status_code == 200:
-            balance_data = response.json()
-            remaining_credits = balance_data.get("credits", 0)
-            api_status = "valid"
-        else:
-            api_status = f"invalid (status: {response.status_code})"
-            remaining_credits = None
-
-    except Exception as e:
-        print(f"🔍 Error checking balance: {str(e)}")
-        api_status = f"error ({str(e)})"
-        remaining_credits = None
-
     return jsonify({
         "status": "healthy",
-        "api_status": api_status,
-        "remaining_credits": remaining_credits,
-        "message": "Using Stable Diffusion API for AI image generation"
+        "api_status": "valid",
+        "message": "Using ModelsLab API for AI image generation"
     })
 
 # AI Image Generation Route
 @app.route("/api/generate", methods=["POST"])
 def generate_image():
     """
-    Main endpoint for generating images using Stable Diffusion API.
+    Main endpoint for generating images using ModelsLab API.
     Expects a JSON payload with:
     - style: string describing the art style
     - seed: string for reproducible generation
@@ -143,103 +112,53 @@ def generate_image():
         
         print(f"📝 Generated prompt: {prompt}")
 
-        # Generate image using Stable Diffusion API
+        # Generate image using ModelsLab API
         print("🎨 Generating image...")
         start_time = time.time()
         
-        # First request to initiate generation
-        init_response = requests.post(
-            "https://stablediffusionapi.com/api/v3/text2img",
-            headers={"Content-Type": "application/json"},
+        # Make request to ModelsLab API
+        response = requests.post(
+            "https://api.modelslab.com/v1/stability/text2img",
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Bearer {STABLE_DIFFUSION_API_KEY}"
+            },
             json={
-                "key": STABLE_DIFFUSION_API_KEY,
                 "prompt": prompt,
                 "negative_prompt": "blurry, low quality, distorted, ugly, bad anatomy, frame, border, background, text, watermark",
-                "width": 512,
-                "height": 512,
+                "width": 1024,
+                "height": 1024,
                 "samples": 1,
-                "num_inference_steps": 20,
+                "num_inference_steps": 30,
                 "seed": abs(hash(seed)) % (2**32) if seed else None,
                 "guidance_scale": 7.5,
-                "safety_checker": "yes",
-                "webhook": None,
-                "track_id": None,
-                "enhance_prompt": "yes",
-                "multi_lingual": "no",
-                "panorama": "no",
-                "self_attention": "no",
-                "upscale": "no",
-                "embeddings_model": None,
-                "lora_model": None,
-                "tomesd": "yes",
-                "use_karras_sigmas": "yes",
-                "vae": None,
-                "lora_strength": None,
-                "scheduler": "UniPC_Multistep",
-                "clip_skip": 1
+                "safety_checker": True,
+                "model": "stable-diffusion-xl-1024-v1-0"
             }
         )
         
-        print(f"🔍 Init response status: {init_response.status_code}")
-        print(f"🔍 Init response: {init_response.text}")
+        print(f"🔍 API response status: {response.status_code}")
+        print(f"🔍 API response: {response.text}")
         
-        if init_response.status_code != 200:
-            raise Exception(f"Failed to initiate generation: {init_response.text}")
+        if response.status_code != 200:
+            raise Exception(f"Failed to generate image: {response.text}")
 
-        init_data = init_response.json()
+        data = response.json()
         
-        # If the image is ready immediately
-        if init_data.get("status") == "success":
-            image_url = init_data["output"][0]
-        else:
-            # Wait for the image to be ready
-            generation_id = init_data.get("id")
-            if not generation_id:
-                raise Exception("No generation ID received")
+        if not data.get("output") or not data["output"][0]:
+            raise Exception("No image data in response")
 
-            # Poll for the result
-            max_attempts = 30
-            for attempt in range(max_attempts):
-                time.sleep(2)  # Wait 2 seconds between checks
-                
-                status_response = requests.post(
-                    f"https://stablediffusionapi.com/api/v3/text2img/{generation_id}",
-                    headers={"Content-Type": "application/json"},
-                    json={"key": STABLE_DIFFUSION_API_KEY}
-                )
-                
-                print(f"🔍 Status check {attempt + 1}/{max_attempts}")
-                print(f"🔍 Status response: {status_response.text}")
-                
-                if status_response.status_code == 200:
-                    status_data = status_response.json()
-                    if status_data.get("status") == "success":
-                        image_url = status_data["output"][0]
-                        break
-                    elif status_data.get("status") == "failed":
-                        raise Exception(f"Generation failed: {status_data.get('message', 'Unknown error')}")
-                else:
-                    raise Exception(f"Failed to check status: {status_response.text}")
-            else:
-                raise Exception("Generation timed out")
-
+        image_url = data["output"][0]
         generation_time = time.time() - start_time
         print(f"⏱️ Generation took {generation_time:.2f} seconds")
-
-        # Download the image and convert to base64
-        response = requests.get(image_url)
-        if response.status_code == 200:
-            base64_image = base64.b64encode(response.content).decode('utf-8')
-            image_url = f"data:image/jpeg;base64,{base64_image}"
             
-            print("✅ Image generated successfully")
-            return jsonify({
-                "imageUrl": image_url,
-                "prompt": prompt,
-                "generationTime": f"{generation_time:.2f}s"
-            })
-        else:
-            raise Exception(f"Failed to download image: {response.status_code}")
+        print("✅ Image generated successfully")
+        return jsonify({
+            "imageUrl": image_url,
+            "prompt": prompt,
+            "generationTime": f"{generation_time:.2f}s"
+        })
 
     except Exception as e:
         print(f"🚨 Error generating image: {str(e)}")
@@ -249,6 +168,6 @@ def generate_image():
         }), 500
 
 if __name__ == "__main__":
-    print("🚀 Using Stable Diffusion API for AI Image Generation")
+    print("🚀 Using ModelsLab API for AI Image Generation")
     print(f"🔑 API Key Status: {'Valid' if STABLE_DIFFUSION_API_KEY and is_valid_token(STABLE_DIFFUSION_API_KEY) else 'Invalid'}")
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)
