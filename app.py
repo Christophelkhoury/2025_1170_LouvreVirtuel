@@ -5,22 +5,24 @@ import base64
 import requests
 import time
 
+# CHANGED: Switched from Hugging Face to Stability AI API
 # Get API key directly from environment variables
 STABLE_DIFFUSION_API_KEY = os.environ.get("STABILITY_API_KEY")
 
-# Debug logging for environment variables
+# CHANGED: Added debug logging for environment variables
 print("🔍 Environment Variables Check:")
 print(f"STABILITY_API_KEY exists: {'Yes' if STABLE_DIFFUSION_API_KEY else 'No'}")
 if STABLE_DIFFUSION_API_KEY:
     print(f"STABILITY_API_KEY length: {len(STABLE_DIFFUSION_API_KEY)}")
 
-# Validate API token format
+# CHANGED: Added token validation function
 def is_valid_token(token):
     """Check if the token has the correct format"""
     return (token and 
             isinstance(token, str) and 
             len(token) > 20)  # Stability AI tokens are longer than 20 chars
 
+# CHANGED: Added API key validation checks
 if not STABLE_DIFFUSION_API_KEY:
     print("🚨 Warning: STABILITY_API_KEY is missing!")
     print("Please set STABILITY_API_KEY in Render environment variables")
@@ -31,15 +33,16 @@ elif not is_valid_token(STABLE_DIFFUSION_API_KEY):
 # Initialize Flask App
 app = Flask(__name__)
 
-# Configure CORS to allow requests from our frontend domains
+# CHANGED: Updated CORS configuration to allow Netlify domain
 CORS(app, resources={r"/api/*": {"origins": ["https://museevirtuel.netlify.app", "http://localhost:5173", "http://localhost:4173"]}})
 
-# API Health Check Route
+# CHANGED: Added basic health check endpoint
 @app.route("/", methods=["GET"])
 def home():
     """Simple health check endpoint"""
     return jsonify({"message": "Flask API is running!", "status": "OK"})
 
+# CHANGED: Added detailed status endpoint
 @app.route("/api/status", methods=["GET"])
 def status():
     """
@@ -64,7 +67,7 @@ def status():
         "message": "Using Stability AI API for image generation"
     })
 
-# AI Image Generation Route
+# CHANGED: Updated image generation endpoint for Stability AI
 @app.route("/api/generate", methods=["POST"])
 def generate_image():
     """
@@ -93,10 +96,10 @@ def generate_image():
         
         print(f"🎲 Received parameters: seed={seed}, timestamp={timestamp}, factor={random_factor}")
         
-        # Create base prompt describing the artwork
+        # CHANGED: Improved prompt generation
         base_prompt = f"A masterpiece painting in the style of {style}, highly detailed, artistic, professional quality"
         
-        # List of possible variations to make each generation unique
+        # CHANGED: Added variations for more unique generations
         variations = [
             "with dramatic lighting",
             "with vibrant colors",
@@ -106,17 +109,16 @@ def generate_image():
             "with atmospheric effects"
         ]
         
-        # Select a variation based on the random factor
         variation_index = random_factor % len(variations)
         prompt = f"{base_prompt}, {variations[variation_index]}, no frame, no border, no background, pure artwork"
         
         print(f"📝 Generated prompt: {prompt}")
 
-        # Generate image using Stability AI API
+        # CHANGED: Added timing for performance monitoring
         print("🎨 Generating image...")
         start_time = time.time()
         
-        # Make request to Stability AI API
+        # CHANGED: Updated API endpoint and parameters for Stability AI
         response = requests.post(
             "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
             headers={
@@ -140,6 +142,7 @@ def generate_image():
             }
         )
         
+        # CHANGED: Added detailed error logging
         print(f"🔍 API response status: {response.status_code}")
         print(f"🔍 API response: {response.text}")
         
@@ -171,6 +174,7 @@ def generate_image():
         }), 500
 
 if __name__ == "__main__":
+    # CHANGED: Added startup logging
     print("🚀 Using Stability AI API for AI Image Generation")
     print(f"🔑 API Key Status: {'Valid' if STABLE_DIFFUSION_API_KEY and is_valid_token(STABLE_DIFFUSION_API_KEY) else 'Invalid'}")
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)), debug=True)
